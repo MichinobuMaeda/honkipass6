@@ -140,7 +140,7 @@ abstract class AppLocalizations {
   /// **'Auto'**
   String get auto;
 
-  /// No description provided for @waiting.
+  /// Message displayed while waiting for an operation to complete
   ///
   /// In en, this message translates to:
   /// **'Waiting...'**

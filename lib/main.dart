@@ -4,6 +4,7 @@ import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:flutter_riverpod/legacy.dart';
 import 'l10n/app_localizations.dart';
+import 'honkipass.dart';
 
 // 1. Create a provider for the theme mode
 final themeModeProvider = StateProvider<ThemeMode>((ref) => ThemeMode.system);
@@ -106,6 +107,17 @@ class MyHomePage extends HookConsumerWidget {
     final password = useState('test');
     final message = useState<String>(l10n.waiting);
 
+    final lengthIndex = useState(lengthList.indexOf(defaultLength));
+    final preset = useState(defaultPreset);
+    final lowerCase = useState(defaultLowerCase);
+    final upperCase = useState(defaultUpperCase);
+    final numerics = useState(defaultNumerics);
+    final symbols = useState(defaultSymbols);
+    final allTypes = useState(defaultAllTypes);
+    final uniqueChars = useState(defaultUniqueChars);
+    final applyExcluded = useState(defaultApplyExcluded);
+    final excludedChars = useState(defaultExcludedChars);
+
     return Scaffold(
       backgroundColor: Theme.of(context).colorScheme.surfaceContainerLowest,
       appBar: AppBar(
@@ -147,8 +159,10 @@ class MyHomePage extends HookConsumerWidget {
                           ? Theme.of(context).colorScheme.secondaryContainer
                           : null,
                       child: Row(
-                        spacing: 8.0,
-                        children: [SizedBox(width: 24.0), Text(item.label)],
+                        children: [
+                          const SizedBox(width: 24.0),
+                          Text(item.label),
+                        ],
                       ),
                     ),
                   ),
@@ -167,10 +181,7 @@ class MyHomePage extends HookConsumerWidget {
                       color: currentThemeMode == item.mode
                           ? Theme.of(context).colorScheme.secondaryContainer
                           : null,
-                      child: Row(
-                        spacing: 8.0,
-                        children: [Icon(item.icon), Text(item.label)],
-                      ),
+                      child: Row(children: [Icon(item.icon), Text(item.label)]),
                     ),
                   ),
                 ),
@@ -180,40 +191,38 @@ class MyHomePage extends HookConsumerWidget {
             ...languageList.map(
               (item) => IconButton(
                 icon: Text(item.shortName),
-                tooltip: item.label,
                 isSelected: currentLocale == item.locale,
                 onPressed: () {
                   ref.read(localeProvider.notifier).state = item.locale;
                 },
                 style: ButtonStyle(
-                  backgroundColor: WidgetStateProperty.resolveWith<Color?>(
-                    (states) {
-                      if (states.contains(WidgetState.selected)) {
-                        return Theme.of(context).colorScheme.secondaryContainer;
-                      }
-                      return null;
-                    },
-                  ),
+                  backgroundColor: WidgetStateProperty.resolveWith<Color?>((
+                    states,
+                  ) {
+                    if (states.contains(WidgetState.selected)) {
+                      return Theme.of(context).colorScheme.secondaryContainer;
+                    }
+                    return null;
+                  }),
                 ),
               ),
             ),
             ...themeList.map(
               (item) => IconButton(
                 icon: Icon(item.icon),
-                tooltip: item.label,
                 isSelected: currentThemeMode == item.mode,
                 onPressed: () {
                   ref.read(themeModeProvider.notifier).state = item.mode;
                 },
                 style: ButtonStyle(
-                  backgroundColor: WidgetStateProperty.resolveWith<Color?>(
-                    (states) {
-                      if (states.contains(WidgetState.selected)) {
-                        return Theme.of(context).colorScheme.secondaryContainer;
-                      }
-                      return null;
-                    },
-                  ),
+                  backgroundColor: WidgetStateProperty.resolveWith<Color?>((
+                    states,
+                  ) {
+                    if (states.contains(WidgetState.selected)) {
+                      return Theme.of(context).colorScheme.secondaryContainer;
+                    }
+                    return null;
+                  }),
                 ),
               ),
             ),
@@ -240,10 +249,11 @@ class MyHomePage extends HookConsumerWidget {
                         onPressed: () {
                           Clipboard.setData(ClipboardData(text: password.value))
                               .then((_) {
-                            message.value = l10n.copied;
-                          }).catchError((_) {
-                            message.value = l10n.failedToCopy;
-                          });
+                                message.value = l10n.copied;
+                              })
+                              .catchError((_) {
+                                message.value = l10n.failedToCopy;
+                              });
                         },
                       ),
                       suffixIcon: IconButton(
@@ -265,17 +275,48 @@ class MyHomePage extends HookConsumerWidget {
             slivers: [
               SliverFillRemaining(
                 hasScrollBody: false,
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.end,
-                  children: [
-                    Padding(
-                      padding: const EdgeInsets.all(16.0),
-                      child: Text(
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                  child: Column(
+                    children: [
+                      Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          IconButton.filledTonal(
+                            icon: const Icon(Icons.settings_backup_restore),
+                            onPressed: null,
+                          ),
+                          Expanded(
+                            child: Padding(
+                              padding: const EdgeInsets.only(top: 16.0),
+                              child: SliderTheme(
+                                data: SliderTheme.of(context).copyWith(
+                                  showValueIndicator:
+                                      ShowValueIndicator.alwaysVisible,
+                                ),
+                                child: Slider(
+                                  value: lengthIndex.value.toDouble(),
+                                  min: 0,
+                                  max: (lengthList.length - 1).toDouble(),
+                                  divisions: lengthList.length - 1,
+                                  onChanged: (value) {
+                                    lengthIndex.value = value.toInt();
+                                  },
+                                  label: lengthList[lengthIndex.value]
+                                      .toString(),
+                                ),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+
+                      Text(
                         '© 2025 Michinobu Maeda',
                         style: Theme.of(context).textTheme.bodySmall,
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
               ),
             ],
