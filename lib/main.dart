@@ -2,22 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:flutter_riverpod/legacy.dart';
 
+// 1. Create a provider for the theme mode
 final themeModeProvider = StateProvider<ThemeMode>((ref) => ThemeMode.system);
 
-class ThemeList {
-  const ThemeList(this.mode, this.icon, this.label);
-  final ThemeMode mode;
-  final IconData icon;
-  final String label;
-}
-
-const themeList = [
-  ThemeList(ThemeMode.light, Icons.light_mode,  'Light mode'),
-  ThemeList(ThemeMode.dark, Icons.dark_mode, 'Dark mode'),
-  ThemeList(ThemeMode.system, Icons.brightness_auto, 'Auto'),
-];
-
 void main() {
+  // 2. Wrap the app in a ProviderScope
   runApp(const ProviderScope(child: MyApp()));
 }
 
@@ -26,6 +15,7 @@ class MyApp extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    // 3. Watch the theme mode provider
     final themeMode = ref.watch(themeModeProvider);
 
     const String title = 'Honkipass 6';
@@ -51,6 +41,35 @@ class MyApp extends ConsumerWidget {
   }
 }
 
+class ThemeMenuItem {
+  const ThemeMenuItem({
+    required this.mode,
+    required this.label,
+    required this.icon,
+  });
+  final ThemeMode mode;
+  final String label;
+  final IconData icon;
+}
+
+const themeList = [
+  ThemeMenuItem(
+    mode: ThemeMode.light,
+    label: 'Light Mode',
+    icon: Icons.light_mode,
+  ),
+  ThemeMenuItem(
+    mode: ThemeMode.dark,
+    label: 'Dark Mode',
+    icon: Icons.dark_mode,
+  ),
+  ThemeMenuItem(
+    mode: ThemeMode.system,
+    label: 'Auto',
+    icon: Icons.brightness_auto,
+  ),
+];
+
 class MyHomePage extends HookConsumerWidget {
   const MyHomePage({super.key, required this.title});
 
@@ -59,6 +78,8 @@ class MyHomePage extends HookConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final currentThemeMode = ref.watch(themeModeProvider);
+    final screenWidth = MediaQuery.of(context).size.width;
+    const breakpointMobile = 480.0;
 
     return Scaffold(
       backgroundColor: Theme.of(context).colorScheme.surfaceContainerLowest,
@@ -75,38 +96,58 @@ class MyHomePage extends HookConsumerWidget {
           ),
         ),
         actions: [
-          PopupMenuButton<ThemeMode>(
-            icon: const Icon(Icons.more_vert),
-            position: PopupMenuPosition.under,
-            onSelected: (ThemeMode mode) {
-              ref.read(themeModeProvider.notifier).state = mode;
-            },
-            itemBuilder: (BuildContext context) => <PopupMenuEntry<ThemeMode>>[
-              ...themeList.map(
-                (item) => PopupMenuItem<ThemeMode>(
-                  value: item.mode,
-                  padding: EdgeInsets.zero,
-                  child: Container(
-                    alignment: Alignment.centerLeft,
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 16.0,
-                      vertical: 12.0,
+          if (screenWidth < breakpointMobile)
+            PopupMenuButton<ThemeMode>(
+              icon: const Icon(Icons.more_vert),
+              position: PopupMenuPosition.under,
+              onSelected: (ThemeMode mode) {
+                ref.read(themeModeProvider.notifier).state = mode;
+              },
+              itemBuilder: (BuildContext context) =>
+                  <PopupMenuEntry<ThemeMode>>[
+                    ...themeList.map(
+                      (item) => PopupMenuItem<ThemeMode>(
+                        value: item.mode,
+                        padding: EdgeInsets.zero,
+                        child: Container(
+                          alignment: Alignment.centerLeft,
+                          padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                          color: currentThemeMode == item.mode
+                              ? Theme.of(context).colorScheme.secondaryContainer
+                              : null,
+                          child: Text(item.label),
+                        ),
+                      ),
                     ),
-                    color: currentThemeMode == item.mode
-                        ? Theme.of(context).colorScheme.secondaryContainer
-                        : null,
-                    child: Row(
-                      spacing: 8.0,
-                      children: [
-                        Icon(item.icon),
-                        Text(item.label),
-                      ],
+                  ],
+            )
+          else
+            Row(
+              children: [
+                ...themeList.map(
+                  (item) => IconButton(
+                    icon: Icon(item.icon),
+                    tooltip: item.label,
+                    isSelected: currentThemeMode == item.mode,
+                    onPressed: () {
+                      ref.read(themeModeProvider.notifier).state = item.mode;
+                    },
+                    style: ButtonStyle(
+                      backgroundColor: WidgetStateProperty.resolveWith<Color?>((
+                        states,
+                      ) {
+                        if (states.contains(WidgetState.selected)) {
+                          return Theme.of(
+                            context,
+                          ).colorScheme.secondaryContainer;
+                        }
+                        return null;
+                      }),
                     ),
                   ),
                 ),
-              ),
-            ],
-          ),
+              ],
+            ),
         ],
       ),
       body: const Center(
