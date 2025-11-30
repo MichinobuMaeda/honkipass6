@@ -1,0 +1,35 @@
+{
+  "@@locale": "ja",
+  "appTitle": "Honkipass 6",
+  "@appTitle": {
+    "description": "アプリケーションのタイトル"
+  },
+  "password": "パスワード",
+  "@password": {
+    "description": "パスワードフィールドのラベル"
+  },
+  "copied": "コピーしました",
+  "@copied": {
+    "description": "テキストがクリップボードにコピーされたときに表示されるメッセージ"
+  },
+  "failedToCopy": "コピーに失敗しました",
+  "@failedToCopy": {
+    "description": "テキストのクリップボードへのコピーに失敗したときに表示されるメッセージ"
+  },
+  "lightMode": "ライトモード",
+  "@lightMode": {
+    "description": "ライトモードテーマオプションのラベル"
+  },
+  "darkMode": "ダークモード",
+  "@darkMode": {
+    "description": "ダークモードテーマオプションのラベル"
+  },
+  "auto": "自動",
+  "@auto": {
+    "description": "自動/システムテーマオプションのラベル"
+  },
+  "waiting": "お待ちください...",
+  "@waiting": {
+    "description": "操作の完了を待っている間に表示されるメッセージ"
+  }
+}

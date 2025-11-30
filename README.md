@@ -2,6 +2,10 @@
 
 A new Flutter project.
 
+## Project Blueprint
+
+For a detailed overview of the project's design, features, and implementation, please see the [Project Blueprint](docs/blueprint.md).
+
 ## Getting Started
 
 This project is a starting point for a Flutter application.

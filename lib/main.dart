@@ -1,9 +1,13 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:flutter_riverpod/legacy.dart';
+import 'l10n/app_localizations.dart';
 
 // 1. Create a provider for the theme mode
 final themeModeProvider = StateProvider<ThemeMode>((ref) => ThemeMode.system);
+final localeProvider = StateProvider<Locale>((ref) => const Locale('ja'));
 
 void main() {
   // 2. Wrap the app in a ProviderScope
@@ -17,8 +21,8 @@ class MyApp extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     // 3. Watch the theme mode provider
     final themeMode = ref.watch(themeModeProvider);
+    final locale = ref.watch(localeProvider);
 
-    const String title = 'Honkipass 6';
     final themeData = ThemeData(
       useMaterial3: true,
       colorScheme: ColorScheme.fromSeed(seedColor: Colors.teal),
@@ -32,11 +36,14 @@ class MyApp extends ConsumerWidget {
     );
 
     return MaterialApp(
-      title: title,
+      onGenerateTitle: (context) => AppLocalizations.of(context)!.appTitle,
+      localizationsDelegates: AppLocalizations.localizationsDelegates,
+      supportedLocales: AppLocalizations.supportedLocales,
+      locale: locale,
       themeMode: themeMode,
       theme: themeData,
       darkTheme: darkThemeData,
-      home: const MyHomePage(title: title),
+      home: const MyHomePage(),
     );
   }
 }
@@ -52,34 +59,52 @@ class ThemeMenuItem {
   final IconData icon;
 }
 
-const themeList = [
-  ThemeMenuItem(
-    mode: ThemeMode.light,
-    label: 'Light Mode',
-    icon: Icons.light_mode,
-  ),
-  ThemeMenuItem(
-    mode: ThemeMode.dark,
-    label: 'Dark Mode',
-    icon: Icons.dark_mode,
-  ),
-  ThemeMenuItem(
-    mode: ThemeMode.system,
-    label: 'Auto',
-    icon: Icons.brightness_auto,
-  ),
-];
+class LanguageMenuItem {
+  const LanguageMenuItem({
+    required this.locale,
+    required this.label,
+    required this.shortName,
+  });
+  final Locale locale;
+  final String label;
+  final String shortName;
+}
 
 class MyHomePage extends HookConsumerWidget {
-  const MyHomePage({super.key, required this.title});
-
-  final String title;
+  const MyHomePage({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = AppLocalizations.of(context)!;
+    final themeList = [
+      ThemeMenuItem(
+        mode: ThemeMode.light,
+        label: l10n.lightMode,
+        icon: Icons.light_mode,
+      ),
+      ThemeMenuItem(
+        mode: ThemeMode.dark,
+        label: l10n.darkMode,
+        icon: Icons.dark_mode,
+      ),
+      ThemeMenuItem(
+        mode: ThemeMode.system,
+        label: l10n.auto,
+        icon: Icons.brightness_auto,
+      ),
+    ];
+
+    const languageList = [
+      LanguageMenuItem(locale: Locale('ja'), label: '日本語', shortName: '日'),
+      LanguageMenuItem(locale: Locale('en'), label: 'English', shortName: 'En'),
+    ];
+
     final currentThemeMode = ref.watch(themeModeProvider);
+    final currentLocale = ref.watch(localeProvider);
     final screenWidth = MediaQuery.of(context).size.width;
     const breakpointMobile = 480.0;
+    final password = useState('test');
+    final message = useState<String>(l10n.waiting);
 
     return Scaffold(
       backgroundColor: Theme.of(context).colorScheme.surfaceContainerLowest,
@@ -90,72 +115,171 @@ class MyHomePage extends HookConsumerWidget {
           child: Image.asset('images/logo.png'),
         ),
         title: Text(
-          title,
+          l10n.appTitle,
           style: Theme.of(context).textTheme.titleLarge?.copyWith(
             color: Theme.of(context).colorScheme.onSurface,
           ),
         ),
         actions: [
           if (screenWidth < breakpointMobile)
-            PopupMenuButton<ThemeMode>(
+            PopupMenuButton<dynamic>(
               icon: const Icon(Icons.more_vert),
               position: PopupMenuPosition.under,
-              onSelected: (ThemeMode mode) {
-                ref.read(themeModeProvider.notifier).state = mode;
+              onSelected: (dynamic value) {
+                if (value is Locale) {
+                  ref.read(localeProvider.notifier).state = value;
+                } else if (value is ThemeMode) {
+                  ref.read(themeModeProvider.notifier).state = value;
+                }
               },
-              itemBuilder: (BuildContext context) =>
-                  <PopupMenuEntry<ThemeMode>>[
-                    ...themeList.map(
-                      (item) => PopupMenuItem<ThemeMode>(
-                        value: item.mode,
-                        padding: EdgeInsets.zero,
-                        child: Container(
-                          alignment: Alignment.centerLeft,
-                          padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                          color: currentThemeMode == item.mode
-                              ? Theme.of(context).colorScheme.secondaryContainer
-                              : null,
-                          child: Text(item.label),
-                        ),
+              itemBuilder: (BuildContext context) => <PopupMenuEntry<dynamic>>[
+                ...languageList.map(
+                  (item) => PopupMenuItem<Locale>(
+                    value: item.locale,
+                    padding: EdgeInsets.zero,
+                    child: Container(
+                      alignment: Alignment.centerLeft,
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 16.0,
+                        vertical: 8.0,
+                      ),
+                      color: currentLocale == item.locale
+                          ? Theme.of(context).colorScheme.secondaryContainer
+                          : null,
+                      child: Row(
+                        spacing: 8.0,
+                        children: [SizedBox(width: 24.0), Text(item.label)],
                       ),
                     ),
-                  ],
-            )
-          else
-            Row(
-              children: [
+                  ),
+                ),
+                const PopupMenuDivider(),
                 ...themeList.map(
-                  (item) => IconButton(
-                    icon: Icon(item.icon),
-                    tooltip: item.label,
-                    isSelected: currentThemeMode == item.mode,
-                    onPressed: () {
-                      ref.read(themeModeProvider.notifier).state = item.mode;
-                    },
-                    style: ButtonStyle(
-                      backgroundColor: WidgetStateProperty.resolveWith<Color?>((
-                        states,
-                      ) {
-                        if (states.contains(WidgetState.selected)) {
-                          return Theme.of(
-                            context,
-                          ).colorScheme.secondaryContainer;
-                        }
-                        return null;
-                      }),
+                  (item) => PopupMenuItem<ThemeMode>(
+                    value: item.mode,
+                    padding: EdgeInsets.zero,
+                    child: Container(
+                      alignment: Alignment.centerLeft,
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 16.0,
+                        vertical: 8.0,
+                      ),
+                      color: currentThemeMode == item.mode
+                          ? Theme.of(context).colorScheme.secondaryContainer
+                          : null,
+                      child: Row(
+                        spacing: 8.0,
+                        children: [Icon(item.icon), Text(item.label)],
+                      ),
                     ),
                   ),
                 ),
               ],
+            )
+          else ...[
+            ...languageList.map(
+              (item) => IconButton(
+                icon: Text(item.shortName),
+                tooltip: item.label,
+                isSelected: currentLocale == item.locale,
+                onPressed: () {
+                  ref.read(localeProvider.notifier).state = item.locale;
+                },
+                style: ButtonStyle(
+                  backgroundColor: WidgetStateProperty.resolveWith<Color?>(
+                    (states) {
+                      if (states.contains(WidgetState.selected)) {
+                        return Theme.of(context).colorScheme.secondaryContainer;
+                      }
+                      return null;
+                    },
+                  ),
+                ),
+              ),
             ),
-        ],
-      ),
-      body: const Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: <Widget>[
-            Text('You have pushed the button this many times:'),
+            ...themeList.map(
+              (item) => IconButton(
+                icon: Icon(item.icon),
+                tooltip: item.label,
+                isSelected: currentThemeMode == item.mode,
+                onPressed: () {
+                  ref.read(themeModeProvider.notifier).state = item.mode;
+                },
+                style: ButtonStyle(
+                  backgroundColor: WidgetStateProperty.resolveWith<Color?>(
+                    (states) {
+                      if (states.contains(WidgetState.selected)) {
+                        return Theme.of(context).colorScheme.secondaryContainer;
+                      }
+                      return null;
+                    },
+                  ),
+                ),
+              ),
+            ),
           ],
+        ],
+        bottom: PreferredSize(
+          preferredSize: const Size.fromHeight(100.0),
+          child: Container(
+            color: Theme.of(context).colorScheme.surfaceContainerLowest,
+            child: Center(
+              child: SizedBox(
+                width: 640,
+                child: Padding(
+                  padding: const EdgeInsets.all(16.0),
+                  child: TextField(
+                    readOnly: true,
+                    controller: useTextEditingController(text: password.value),
+                    decoration: InputDecoration(
+                      border: const OutlineInputBorder(),
+                      labelText: l10n.password,
+                      helperText: message.value,
+                      prefixIcon: IconButton(
+                        icon: const Icon(Icons.content_copy),
+                        onPressed: () {
+                          Clipboard.setData(ClipboardData(text: password.value))
+                              .then((_) {
+                            message.value = l10n.copied;
+                          }).catchError((_) {
+                            message.value = l10n.failedToCopy;
+                          });
+                        },
+                      ),
+                      suffixIcon: IconButton(
+                        icon: const Icon(Icons.refresh),
+                        onPressed: () {},
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ),
+      ),
+      body: Center(
+        child: SizedBox(
+          width: 640,
+          child: CustomScrollView(
+            slivers: [
+              SliverFillRemaining(
+                hasScrollBody: false,
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.end,
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.all(16.0),
+                      child: Text(
+                        '© 2025 Michinobu Maeda',
+                        style: Theme.of(context).textTheme.bodySmall,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );
