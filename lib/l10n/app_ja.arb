@@ -6,30 +6,56 @@
   },
   "password": "パスワード",
   "@password": {
-    "description": "パスワードフィールドのラベル"
+    "description": "パスワード"
   },
   "copied": "コピーしました",
   "@copied": {
-    "description": "テキストがクリップボードにコピーされたときに表示されるメッセージ"
+    "description": "クリップボードにコピー"
   },
   "failedToCopy": "コピーに失敗しました",
   "@failedToCopy": {
-    "description": "テキストのクリップボードへのコピーに失敗したときに表示されるメッセージ"
+    "description": "クリップボードへのコピー失敗"
   },
   "lightMode": "ライトモード",
   "@lightMode": {
-    "description": "ライトモードテーマオプションのラベル"
+    "description": "ライトモードテーマ"
   },
   "darkMode": "ダークモード",
   "@darkMode": {
-    "description": "ダークモードテーマオプションのラベル"
+    "description": "ダークモードテーマ"
   },
   "auto": "自動",
   "@auto": {
-    "description": "自動/システムテーマオプションのラベル"
+    "description": "自動/システムテーマ"
   },
   "waiting": "お待ちください...",
   "@waiting": {
-    "description": "操作の完了を待っている間に表示されるメッセージ"
+    "description": "操作完了待ち"
+  },
+  "reset": "リセット",
+  "@reset": {
+    "description": "設定リセット"
+  },
+  "std": "標準{count}字",
+  "@std": {
+    "description": "標準の文字セット",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "ext": "拡張{count}字",
+  "@ext": {
+    "description": "拡張文字セット",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "manual": "詳細設定",
+  "@manual": {
+    "description": "手動設定の文字セット"
   }
 }

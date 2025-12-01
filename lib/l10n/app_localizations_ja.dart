@@ -31,4 +31,20 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get waiting => 'お待ちください...';
+
+  @override
+  String get reset => 'リセット';
+
+  @override
+  String std(int count) {
+    return '標準$count字';
+  }
+
+  @override
+  String ext(int count) {
+    return '拡張$count字';
+  }
+
+  @override
+  String get manual => '詳細設定';
 }

@@ -21,6 +21,14 @@ This document outlines the design, features, and implementation of a password ge
 - **Responsive Design:** The application's layout adapts to different screen sizes, providing an optimal user experience on both mobile and desktop devices.
 - **Footer:** The application includes a professional footer with a copyright notice.
 
+## AI Development Workflow
+
+This section documents the AI's development and interaction process.
+
+- **Blueprint Management:** The AI will maintain this `blueprint.md` file to track the application's state and planned changes.
+- **Interaction Model:** Defines how the AI should interpret prompts, provide contextual responses, and handle errors.
+- **Error Handling and Logging:** Specifies the use of `dart:developer` for structured logging and outlines a detailed error-checking flow.
+
 ## Implementation Plan
 
 ### Current Task: Add Language Selection and Footer

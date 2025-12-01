@@ -17,7 +17,7 @@ const defaultApplyExcluded = true;
 const defaultExcludedChars = 'Il10O8B3Egqvu!|[]{}';
 
 const charSetAll =
-    "!\\\"#\$%&\'()*+,-./0123456789:;<=>?@"
+    "!\\\"#\$%&'()*+,-./0123456789:;<=>?@"
     "ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\\\]^_`"
     "abcdefghijklmnopqrstuvwxyz{|}~";
 const charSetStd =
@@ -25,7 +25,7 @@ const charSetStd =
     "ABCDEFGHJKLMNPRSTUVWXYZ"
     "abcdefghijkmnopqrstuvwxyz";
 const charSetExt =
-    "!\\\"#\$%&\'()*+,-./23456789:;<=>?@"
+    "!\\\"#\$%&'()*+,-./23456789:;<=>?@"
     "ABCDEFGHJKLMNOPRSTUVWXYZ[\\\\]^_"
     "abcdefghijkmnopqrstuvwxyz{|}~";
 

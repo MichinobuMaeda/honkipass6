@@ -100,6 +100,14 @@ class MyHomePage extends HookConsumerWidget {
       LanguageMenuItem(locale: Locale('en'), label: 'English', shortName: 'En'),
     ];
 
+    void setLocale(locale) {
+      ref.read(localeProvider.notifier).state = locale;
+    }
+
+    void setThemeMode(mode) {
+      ref.read(themeModeProvider.notifier).state = mode;
+    }
+
     final currentThemeMode = ref.watch(themeModeProvider);
     final currentLocale = ref.watch(localeProvider);
     final screenWidth = MediaQuery.of(context).size.width;
@@ -117,6 +125,31 @@ class MyHomePage extends HookConsumerWidget {
     final uniqueChars = useState(defaultUniqueChars);
     final applyExcluded = useState(defaultApplyExcluded);
     final excludedChars = useState(defaultExcludedChars);
+
+    final isChanged =
+        lengthIndex.value != lengthList.indexOf(defaultLength) ||
+        preset.value != defaultPreset ||
+        lowerCase.value != defaultLowerCase ||
+        upperCase.value != defaultUpperCase ||
+        numerics.value != defaultNumerics ||
+        symbols.value != defaultSymbols ||
+        allTypes.value != defaultAllTypes ||
+        uniqueChars.value != defaultUniqueChars ||
+        applyExcluded.value != defaultApplyExcluded ||
+        excludedChars.value != defaultExcludedChars;
+
+    void onReset() {
+      lengthIndex.value = lengthList.indexOf(defaultLength);
+      preset.value = defaultPreset;
+      lowerCase.value = defaultLowerCase;
+      upperCase.value = defaultUpperCase;
+      numerics.value = defaultNumerics;
+      symbols.value = defaultSymbols;
+      allTypes.value = defaultAllTypes;
+      uniqueChars.value = defaultUniqueChars;
+      applyExcluded.value = defaultApplyExcluded;
+      excludedChars.value = defaultExcludedChars;
+    }
 
     return Scaffold(
       backgroundColor: Theme.of(context).colorScheme.surfaceContainerLowest,
@@ -139,9 +172,9 @@ class MyHomePage extends HookConsumerWidget {
               position: PopupMenuPosition.under,
               onSelected: (dynamic value) {
                 if (value is Locale) {
-                  ref.read(localeProvider.notifier).state = value;
+                  setLocale(value);
                 } else if (value is ThemeMode) {
-                  ref.read(themeModeProvider.notifier).state = value;
+                  setThemeMode(value);
                 }
               },
               itemBuilder: (BuildContext context) => <PopupMenuEntry<dynamic>>[
@@ -189,42 +222,26 @@ class MyHomePage extends HookConsumerWidget {
             )
           else ...[
             ...languageList.map(
-              (item) => IconButton(
-                icon: Text(item.shortName),
-                isSelected: currentLocale == item.locale,
-                onPressed: () {
-                  ref.read(localeProvider.notifier).state = item.locale;
-                },
-                style: ButtonStyle(
-                  backgroundColor: WidgetStateProperty.resolveWith<Color?>((
-                    states,
-                  ) {
-                    if (states.contains(WidgetState.selected)) {
-                      return Theme.of(context).colorScheme.secondaryContainer;
-                    }
-                    return null;
-                  }),
-                ),
-              ),
+              (item) => currentLocale == item.locale
+                  ? IconButton.filledTonal(
+                      icon: Text(item.shortName),
+                      onPressed: () => setLocale(item.locale),
+                    )
+                  : IconButton(
+                      icon: Text(item.shortName),
+                      onPressed: () => setLocale(item.locale),
+                    ),
             ),
             ...themeList.map(
-              (item) => IconButton(
-                icon: Icon(item.icon),
-                isSelected: currentThemeMode == item.mode,
-                onPressed: () {
-                  ref.read(themeModeProvider.notifier).state = item.mode;
-                },
-                style: ButtonStyle(
-                  backgroundColor: WidgetStateProperty.resolveWith<Color?>((
-                    states,
-                  ) {
-                    if (states.contains(WidgetState.selected)) {
-                      return Theme.of(context).colorScheme.secondaryContainer;
-                    }
-                    return null;
-                  }),
-                ),
-              ),
+              (item) => currentThemeMode == item.mode
+                  ? IconButton.filledTonal(
+                      icon: Icon(item.icon),
+                      onPressed: () => setThemeMode(item.mode),
+                    )
+                  : IconButton(
+                      icon: Icon(item.icon),
+                      onPressed: () => setThemeMode(item.mode),
+                    ),
             ),
           ],
         ],
@@ -282,10 +299,36 @@ class MyHomePage extends HookConsumerWidget {
                       Row(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          IconButton.filledTonal(
-                            icon: const Icon(Icons.settings_backup_restore),
-                            onPressed: null,
-                          ),
+                          if (screenWidth < breakpointMobile)
+                            IconButton(
+                              icon: const Icon(Icons.settings_backup_restore),
+                              onPressed: isChanged ? onReset : null,
+                            )
+                          else
+                            FilledButton.tonal(
+                              onPressed: isChanged ? onReset : null,
+                              style: ButtonStyle(
+                                padding: WidgetStateProperty.all(
+                                  EdgeInsets.symmetric(
+                                    vertical: 8.0,
+                                    horizontal: 16.0,
+                                  ),
+                                ),
+                                shape: WidgetStateProperty.all(
+                                  RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(8.0),
+                                  ),
+                                ),
+                              ),
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  const Icon(Icons.settings_backup_restore),
+                                  const SizedBox(width: 8.0),
+                                  Text(l10n.reset),
+                                ],
+                              ),
+                            ),
                           Expanded(
                             child: Padding(
                               padding: const EdgeInsets.only(top: 16.0),

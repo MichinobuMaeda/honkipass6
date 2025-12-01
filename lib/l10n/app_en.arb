@@ -6,30 +6,56 @@
   },
   "password": "Password",
   "@password": {
-    "description": "Label for the password field"
+    "description": "Password"
   },
   "copied": "Copied",
   "@copied": {
-    "description": "Message displayed when text is copied to clipboard"
+    "description": "Text copied to clipboard"
   },
   "failedToCopy": "Failed to copy",
   "@failedToCopy": {
-    "description": "Message displayed when text fails to be copied to clipboard"
+    "description": "Failed to copy to clipboard"
   },
   "lightMode": "Light Mode",
   "@lightMode": {
-    "description": "Label for the light mode theme option"
+    "description": "Light mode theme option"
   },
   "darkMode": "Dark Mode",
   "@darkMode": {
-    "description": "Label for the dark mode theme option"
+    "description": "Dark mode theme option"
   },
   "auto": "Auto",
   "@auto": {
-    "description": "Label for the auto/system theme option"
+    "description": "Auto/system theme option"
   },
   "waiting": "Waiting...",
   "@waiting": {
-    "description": "Message displayed while waiting for an operation to complete"
+    "description": "Waiting for an operation to complete"
+  },
+  "reset": "Reset",
+  "@reset": {
+    "description": "Reset settings"
+  },
+  "std": "Std {count}",
+  "@std": {
+    "description": "Standard charctor set",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "ext": "Ext {count}",
+  "@ext": {
+    "description": "Extended charctor set",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "manual": "Manual",
+  "@manual": {
+    "description": "Select charactor set manually"
   }
 }

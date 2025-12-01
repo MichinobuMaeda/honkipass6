@@ -104,47 +104,71 @@ abstract class AppLocalizations {
   /// **'Honkipass 6'**
   String get appTitle;
 
-  /// Label for the password field
+  /// Password
   ///
   /// In en, this message translates to:
   /// **'Password'**
   String get password;
 
-  /// Message displayed when text is copied to clipboard
+  /// Text copied to clipboard
   ///
   /// In en, this message translates to:
   /// **'Copied'**
   String get copied;
 
-  /// Message displayed when text fails to be copied to clipboard
+  /// Failed to copy to clipboard
   ///
   /// In en, this message translates to:
   /// **'Failed to copy'**
   String get failedToCopy;
 
-  /// Label for the light mode theme option
+  /// Light mode theme option
   ///
   /// In en, this message translates to:
   /// **'Light Mode'**
   String get lightMode;
 
-  /// Label for the dark mode theme option
+  /// Dark mode theme option
   ///
   /// In en, this message translates to:
   /// **'Dark Mode'**
   String get darkMode;
 
-  /// Label for the auto/system theme option
+  /// Auto/system theme option
   ///
   /// In en, this message translates to:
   /// **'Auto'**
   String get auto;
 
-  /// Message displayed while waiting for an operation to complete
+  /// Waiting for an operation to complete
   ///
   /// In en, this message translates to:
   /// **'Waiting...'**
   String get waiting;
+
+  /// Reset settings
+  ///
+  /// In en, this message translates to:
+  /// **'Reset'**
+  String get reset;
+
+  /// Standard charctor set
+  ///
+  /// In en, this message translates to:
+  /// **'Std {count}'**
+  String std(int count);
+
+  /// Extended charctor set
+  ///
+  /// In en, this message translates to:
+  /// **'Ext {count}'**
+  String ext(int count);
+
+  /// Select charactor set manually
+  ///
+  /// In en, this message translates to:
+  /// **'Manual'**
+  String get manual;
 }
 
 class _AppLocalizationsDelegate

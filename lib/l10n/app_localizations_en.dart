@@ -31,4 +31,20 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get waiting => 'Waiting...';
+
+  @override
+  String get reset => 'Reset';
+
+  @override
+  String std(int count) {
+    return 'Std $count';
+  }
+
+  @override
+  String ext(int count) {
+    return 'Ext $count';
+  }
+
+  @override
+  String get manual => 'Manual';
 }
