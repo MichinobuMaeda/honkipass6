@@ -69,5 +69,13 @@
   "uniqueChars": "同じ文字を繰り返し使わない",
   "@uniqueChars": {
     "description": "生成されるパスワードに重複した文字が含まれないようにします"
+  },
+  "generated": "パスワードを生成しました",
+  "@generated": {
+    "description": "パスワード生成成功時のメッセージ"
+  },
+  "retry": "設定を変更してやり直してください",
+  "@retry": {
+    "description": "パスワード生成失敗時のメッセージ"
   }
 }

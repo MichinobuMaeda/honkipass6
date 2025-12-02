@@ -187,6 +187,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Don\'t use the same characters'**
   String get uniqueChars;
+
+  /// Message on successful password generation
+  ///
+  /// In en, this message translates to:
+  /// **'Generated a password'**
+  String get generated;
+
+  /// Message when password generation fails
+  ///
+  /// In en, this message translates to:
+  /// **'Change settings and retry'**
+  String get retry;
 }
 
 class _AppLocalizationsDelegate

@@ -1,73 +1,81 @@
 {
-  "@@locale": "en",
-  "appTitle": "Honkipass 6",
-  "@appTitle": {
-    "description": "The title of the application"
-  },
-  "password": "Password",
-  "@password": {
-    "description": "Password"
-  },
-  "copied": "Copied",
-  "@copied": {
-    "description": "Text copied to clipboard"
-  },
-  "failedToCopy": "Failed to copy",
-  "@failedToCopy": {
-    "description": "Failed to copy to clipboard"
-  },
-  "lightMode": "Light Mode",
-  "@lightMode": {
-    "description": "Light mode theme option"
-  },
-  "darkMode": "Dark Mode",
-  "@darkMode": {
-    "description": "Dark mode theme option"
-  },
-  "auto": "Auto",
-  "@auto": {
-    "description": "Auto/system theme option"
-  },
-  "waiting": "Waiting...",
-  "@waiting": {
-    "description": "Waiting for an operation to complete"
-  },
-  "reset": "Reset",
-  "@reset": {
-    "description": "Reset settings"
-  },
-  "std": "Std {count}",
-  "@std": {
-    "description": "Standard charctor set",
-    "placeholders": {
-      "count": {
-        "type": "int"
-      }
+    "@@locale": "en",
+    "appTitle": "Honkipass 6",
+    "@appTitle": {
+        "description": "The title of the application"
+    },
+    "password": "Password",
+    "@password": {
+        "description": "Password"
+    },
+    "copied": "Copied",
+    "@copied": {
+        "description": "Text copied to clipboard"
+    },
+    "failedToCopy": "Failed to copy",
+    "@failedToCopy": {
+        "description": "Failed to copy to clipboard"
+    },
+    "lightMode": "Light Mode",
+    "@lightMode": {
+        "description": "Light mode theme option"
+    },
+    "darkMode": "Dark Mode",
+    "@darkMode": {
+        "description": "Dark mode theme option"
+    },
+    "auto": "Auto",
+    "@auto": {
+        "description": "Auto/system theme option"
+    },
+    "waiting": "Waiting...",
+    "@waiting": {
+        "description": "Waiting for an operation to complete"
+    },
+    "reset": "Reset",
+    "@reset": {
+        "description": "Reset settings"
+    },
+    "std": "Std {count}",
+    "@std": {
+        "description": "Standard charctor set",
+        "placeholders": {
+            "count": {
+                "type": "int"
+            }
+        }
+    },
+    "ext": "Ext {count}",
+    "@ext": {
+        "description": "Extended charctor set",
+        "placeholders": {
+            "count": {
+                "type": "int"
+            }
+        }
+    },
+    "manual": "Manual",
+    "@manual": {
+        "description": "Select charactor set manually"
+    },
+    "excludedChars": "Excluded characters",
+    "@excludedChars": {
+        "description": "Characters to be excluded from the password"
+    },
+    "allTypes": "Use all character types",
+    "@allTypes": {
+        "description": "Use all available character types (lowercase, uppercase, numerics, symbols)"
+    },
+    "uniqueChars": "Don't use the same characters",
+    "@uniqueChars": {
+        "description": "Ensure that the generated password does not contain duplicate characters"
+    },
+    "generated": "Generated a password",
+    "@generated": {
+        "description": "Message on successful password generation"
+    },
+    "retry": "Change settings and retry",
+    "@retry": {
+        "description": "Message when password generation fails"
     }
-  },
-  "ext": "Ext {count}",
-  "@ext": {
-    "description": "Extended charctor set",
-    "placeholders": {
-      "count": {
-        "type": "int"
-      }
-    }
-  },
-  "manual": "Manual",
-  "@manual": {
-    "description": "Select charactor set manually"
-  },
-  "excludedChars": "Excluded characters",
-  "@excludedChars": {
-    "description": "Characters to be excluded from the password"
-  },
-  "allTypes": "Use all character types",
-  "@allTypes": {
-    "description": "Use all available character types (lowercase, uppercase, numerics, symbols)"
-  },
-  "uniqueChars": "Don't use the same characters",
-  "@uniqueChars": {
-    "description": "Ensure that the generated password does not contain duplicate characters"
-  }
 }

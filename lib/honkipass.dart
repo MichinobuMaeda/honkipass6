@@ -29,7 +29,7 @@ const charSetExt =
     "ABCDEFGHJKLMNOPRSTUVWXYZ[\\\\]^_"
     "abcdefghijkmnopqrstuvwxyz{|}~";
 
-class Param {
+class HonkipassParam {
   int length;
   Preset preset;
   bool lowerCase;
@@ -41,7 +41,7 @@ class Param {
   bool applyExcluded;
   String excludedChars;
 
-  Param({
+  HonkipassParam({
     this.length = defaultLength,
     this.preset = defaultPreset,
     this.lowerCase = defaultLowerCase,
@@ -55,7 +55,7 @@ class Param {
   });
 }
 
-String generateChars(Param param) {
+String generateChars(HonkipassParam param) {
   String ret;
   switch (param.preset) {
     case Preset.ext:
@@ -88,7 +88,7 @@ String generateChars(Param param) {
   return ret;
 }
 
-String generateCandidate(Param param, String chars) {
+String generateCandidate(HonkipassParam param, String chars) {
   final random = Random.secure();
   return String.fromCharCodes(
     List.generate(
@@ -98,7 +98,7 @@ String generateCandidate(Param param, String chars) {
   );
 }
 
-bool validatePassword(Param param, String password) {
+bool validatePassword(HonkipassParam param, String password) {
   if (password.length != param.length) {
     return false;
   }
@@ -126,7 +126,7 @@ bool validatePassword(Param param, String password) {
   return true;
 }
 
-String generatePassword(Param param, String chars) {
+String generatePassword(HonkipassParam param, String chars) {
   for (var i = 0; i < maxTryCount; ++i) {
     final password = generateCandidate(param, chars);
     if (validatePassword(param, password)) {

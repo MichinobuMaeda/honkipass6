@@ -56,4 +56,10 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get uniqueChars => '同じ文字を繰り返し使わない';
+
+  @override
+  String get generated => 'パスワードを生成しました';
+
+  @override
+  String get retry => '設定を変更してやり直してください';
 }

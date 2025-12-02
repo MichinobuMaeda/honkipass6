@@ -18,6 +18,11 @@ final themeData = ThemeData(
   filledButtonTheme: filledButtonTheme,
   outlinedButtonTheme: outlinedButtonTheme,
   elevatedButtonTheme: elevatedButtonTheme,
+  sliderTheme: SliderThemeData(
+    year2023: false,
+    trackHeight: 24.0,
+    showValueIndicator: ShowValueIndicator.alwaysVisible,
+  )
 );
 
 final darkThemeData = ThemeData(

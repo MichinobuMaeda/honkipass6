@@ -107,8 +107,11 @@ class MyHomePage extends HookConsumerWidget {
     final currentLocale = ref.watch(localeProvider);
     final screenWidth = MediaQuery.of(context).size.width;
     const breakpointMobile = 480.0;
-    final password = useState('test');
-    final message = useState<String>(l10n.waiting);
+    final password = useState(
+      generatePassword(HonkipassParam(), generateChars(HonkipassParam())),
+    );
+    final message = useState<String>(l10n.generated);
+    final passwordController = useTextEditingController(text: password.value);
 
     final lengthIndex = useState(lengthList.indexOf(defaultLength));
     final preset = useState(defaultPreset);
@@ -126,15 +129,39 @@ class MyHomePage extends HookConsumerWidget {
 
     final isChanged =
         lengthIndex.value != lengthList.indexOf(defaultLength) ||
-            preset.value != defaultPreset ||
-            lowerCase.value != defaultLowerCase ||
-            upperCase.value != defaultUpperCase ||
-            numerics.value != defaultNumerics ||
-            symbols.value != defaultSymbols ||
-            allTypes.value != defaultAllTypes ||
-            uniqueChars.value != defaultUniqueChars ||
-            applyExcluded.value != defaultApplyExcluded ||
-            excludedChars.value != defaultExcludedChars;
+        preset.value != defaultPreset ||
+        lowerCase.value != defaultLowerCase ||
+        upperCase.value != defaultUpperCase ||
+        numerics.value != defaultNumerics ||
+        symbols.value != defaultSymbols ||
+        allTypes.value != defaultAllTypes ||
+        uniqueChars.value != defaultUniqueChars ||
+        applyExcluded.value != defaultApplyExcluded ||
+        excludedChars.value != defaultExcludedChars;
+
+    void calc() {
+      final param = HonkipassParam(
+        length: lengthList[lengthIndex.value],
+        preset: preset.value,
+        lowerCase: lowerCase.value,
+        upperCase: upperCase.value,
+        numerics: numerics.value,
+        symbols: symbols.value,
+        allTypes: allTypes.value,
+        uniqueChars: uniqueChars.value,
+        applyExcluded: applyExcluded.value,
+        excludedChars: excludedChars.value,
+      );
+
+      final newPassword = generatePassword(param, generateChars(param));
+      if (newPassword.isNotEmpty) {
+        password.value = newPassword;
+        passwordController.text = newPassword;
+        message.value = l10n.generated;
+      } else {
+        message.value = l10n.retry;
+      }
+    }
 
     void onReset() {
       lengthIndex.value = lengthList.indexOf(defaultLength);
@@ -148,129 +175,160 @@ class MyHomePage extends HookConsumerWidget {
       applyExcluded.value = defaultApplyExcluded;
       excludedChars.value = defaultExcludedChars;
       excludedCharsController.text = defaultExcludedChars;
+      calc();
     }
 
     void copyPassword() {
-      Clipboard.setData(ClipboardData(text: password.value)).then((_) {
-        message.value = l10n.copied;
-      }).catchError((_) {
-        message.value = l10n.failedToCopy;
-      });
+      Clipboard.setData(ClipboardData(text: password.value))
+          .then((_) {
+            message.value = l10n.copied;
+          })
+          .catchError((_) {
+            message.value = l10n.failedToCopy;
+          });
     }
+
+    useEffect(
+      () {
+        calc();
+        return null;
+      },
+      [
+        lengthIndex.value,
+        preset.value,
+        lowerCase.value,
+        upperCase.value,
+        numerics.value,
+        symbols.value,
+        allTypes.value,
+        uniqueChars.value,
+        applyExcluded.value,
+        excludedChars.value,
+      ],
+    );
 
     return Scaffold(
       backgroundColor: Theme.of(context).colorScheme.surfaceContainerLowest,
-      appBar: AppBar(
-        backgroundColor: Theme.of(context).colorScheme.surface,
-        leading: Padding(
-          padding: const EdgeInsets.all(4.0),
-          child: Image.asset('images/logo.png'),
-        ),
-        title: Text(
-          l10n.appTitle,
-          style: Theme.of(context).textTheme.titleLarge?.copyWith(
+      body: CustomScrollView(
+        physics: const BouncingScrollPhysics(),
+        slivers: [
+          SliverAppBar(
+            pinned: true,
+            snap: false,
+            floating: true,
+            // elevation: 8.0,
+            leading: Padding(
+              padding: const EdgeInsets.all(4.0),
+              child: Image.asset('images/logo.png'),
+            ),
+            title: Text(
+              l10n.appTitle,
+              style: Theme.of(context).textTheme.titleLarge?.copyWith(
                 color: Theme.of(context).colorScheme.onSurface,
               ),
-        ),
-        actions: [
-          if (screenWidth < breakpointMobile)
-            PopupMenuButton<dynamic>(
-              icon: const Icon(Icons.more_vert),
-              position: PopupMenuPosition.under,
-              onSelected: (dynamic value) {
-                if (value is Locale) {
-                  setLocale(value);
-                } else if (value is ThemeMode) {
-                  setThemeMode(value);
-                }
-              },
-              itemBuilder: (BuildContext context) => <PopupMenuEntry<dynamic>>[
+            ),
+            actions: [
+              if (screenWidth < breakpointMobile)
+                PopupMenuButton<dynamic>(
+                  icon: const Icon(Icons.more_vert),
+                  position: PopupMenuPosition.under,
+                  onSelected: (dynamic value) {
+                    if (value is Locale) {
+                      setLocale(value);
+                    } else if (value is ThemeMode) {
+                      setThemeMode(value);
+                    }
+                  },
+                  itemBuilder: (BuildContext context) =>
+                      <PopupMenuEntry<dynamic>>[
+                        ...languageList.map(
+                          (item) =>
+                              SelectablePopupMenuItem<Locale>(
+                                    value: item.locale,
+                                    icon: Text(item.shortName),
+                                    label: Text(item.label),
+                                    isSelected: currentLocale == item.locale,
+                                  )
+                                  as PopupMenuItem<Locale>,
+                        ),
+                        const PopupMenuDivider(),
+                        ...themeList.map(
+                          (item) =>
+                              SelectablePopupMenuItem<ThemeMode>(
+                                    value: item.mode,
+                                    icon: Icon(item.icon),
+                                    label: Text(item.label),
+                                    isSelected: currentThemeMode == item.mode,
+                                  )
+                                  as PopupMenuItem<ThemeMode>,
+                        ),
+                      ],
+                )
+              else ...[
                 ...languageList.map(
-                  (item) => SelectablePopupMenuItem<Locale>(
-                    value: item.locale,
+                  (item) => AppBarAction(
                     icon: Text(item.shortName),
-                    label: Text(item.label),
                     isSelected: currentLocale == item.locale,
-                  ) as PopupMenuItem<Locale>,
+                    onPressed: () => setLocale(item.locale),
+                  ),
                 ),
-                const PopupMenuDivider(),
                 ...themeList.map(
-                  (item) => SelectablePopupMenuItem<ThemeMode>(
-                    value: item.mode,
+                  (item) => AppBarAction(
                     icon: Icon(item.icon),
-                    label: Text(item.label),
                     isSelected: currentThemeMode == item.mode,
-                  ) as PopupMenuItem<ThemeMode>,
+                    onPressed: () => setThemeMode(item.mode),
+                  ),
                 ),
               ],
-            )
-          else ...[
-            ...languageList.map(
-              (item) => AppBarAction(
-                icon: Text(item.shortName),
-                isSelected: currentLocale == item.locale,
-                onPressed: () => setLocale(item.locale),
+              SizedBox(width: 4.0),
+            ],
+            bottom: PreferredSize(
+              preferredSize: const Size.fromHeight(94.0),
+              child: Container(
+                color: Theme.of(context).colorScheme.surfaceContainerLowest,
+                child: Center(
+                  child: SizedBox(
+                    width: contentWidth,
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: contentPadding,
+                        vertical: 12.0,
+                      ),
+                      child: TextField(
+                        readOnly: true,
+                        controller: passwordController,
+                        decoration: InputDecoration(
+                          border: const OutlineInputBorder(),
+                          labelText: l10n.password,
+                          helperText: message.value,
+                          prefixIcon: IconButton(
+                            icon: const Icon(Icons.content_copy),
+                            onPressed: copyPassword,
+                          ),
+                          suffixIcon: IconButton(
+                            icon: const Icon(Icons.refresh),
+                            onPressed: calc,
+                          ),
+                        ),
+                        style: TextStyle(fontFamily: 'monospace'),
+                      ),
+                    ),
+                  ),
+                ),
               ),
             ),
-            ...themeList.map(
-              (item) => AppBarAction(
-                icon: Icon(item.icon),
-                isSelected: currentThemeMode == item.mode,
-                onPressed: () => setThemeMode(item.mode),
-              ),
-            ),
-          ],
-          SizedBox(width: 4.0),
-        ],
-        bottom: PreferredSize(
-          preferredSize: const Size.fromHeight(92.0),
-          child: Container(
-            color: Theme.of(context).colorScheme.surfaceContainerLowest,
+          ),
+          SliverFillRemaining(
+            hasScrollBody: false,
             child: Center(
               child: SizedBox(
                 width: contentWidth,
                 child: Padding(
                   padding: const EdgeInsets.symmetric(
                     horizontal: contentPadding,
-                    vertical: 12.0,
-                  ),
-                  child: TextField(
-                    readOnly: true,
-                    controller: useTextEditingController(text: password.value),
-                    decoration: InputDecoration(
-                      border: const OutlineInputBorder(),
-                      labelText: l10n.password,
-                      helperText: message.value,
-                      prefixIcon: IconButton(
-                        icon: const Icon(Icons.content_copy),
-                        onPressed: copyPassword,
-                      ),
-                      suffixIcon: IconButton(
-                        icon: const Icon(Icons.refresh),
-                        onPressed: () {},
-                      ),
-                    ),
-                    style: TextStyle(fontFamily: 'monospace'),
-                  ),
-                ),
-              ),
-            ),
-          ),
-        ),
-      ),
-      body: Center(
-        child: SizedBox(
-          width: contentWidth,
-          child: CustomScrollView(
-            slivers: [
-              SliverFillRemaining(
-                hasScrollBody: false,
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: contentPadding,
                   ),
                   child: Column(
-                    spacing: 8.0,
+                    spacing: 16.0,
                     children: [
                       Row(
                         crossAxisAlignment: CrossAxisAlignment.start,
@@ -294,22 +352,15 @@ class MyHomePage extends HookConsumerWidget {
                           Expanded(
                             child: Padding(
                               padding: const EdgeInsets.only(top: 16.0),
-                              child: SliderTheme(
-                                data: SliderTheme.of(context).copyWith(
-                                  showValueIndicator:
-                                      ShowValueIndicator.alwaysVisible,
-                                ),
-                                child: Slider(
-                                  value: lengthIndex.value.toDouble(),
-                                  min: 0,
-                                  max: (lengthList.length - 1).toDouble(),
-                                  divisions: lengthList.length - 1,
-                                  onChanged: (value) {
-                                    lengthIndex.value = value.toInt();
-                                  },
-                                  label: lengthList[lengthIndex.value]
-                                      .toString(),
-                                ),
+                              child: Slider(
+                                value: lengthIndex.value.toDouble(),
+                                min: 0,
+                                max: (lengthList.length - 1).toDouble(),
+                                divisions: lengthList.length - 1,
+                                onChanged: (value) {
+                                  lengthIndex.value = value.toInt();
+                                },
+                                label: lengthList[lengthIndex.value].toString(),
                               ),
                             ),
                           ),
@@ -386,6 +437,7 @@ class MyHomePage extends HookConsumerWidget {
                                 border: const OutlineInputBorder(),
                                 labelText: l10n.excludedChars,
                               ),
+                              style: TextStyle(fontFamily: 'monospace'),
                             ),
                           ),
                           Switch(
@@ -402,9 +454,7 @@ class MyHomePage extends HookConsumerWidget {
                           Expanded(child: Text(l10n.allTypes)),
                           Switch(
                             value: allTypes.value,
-                            onChanged: preset.value == Preset.manual
-                                ? (value) => allTypes.value = value
-                                : null,
+                            onChanged: (value) => allTypes.value = value,
                           ),
                         ],
                       ),
@@ -414,9 +464,7 @@ class MyHomePage extends HookConsumerWidget {
                           Expanded(child: Text(l10n.uniqueChars)),
                           Switch(
                             value: uniqueChars.value,
-                            onChanged: preset.value == Preset.manual
-                                ? (value) => uniqueChars.value = value
-                                : null,
+                            onChanged: (value) => uniqueChars.value = value,
                           ),
                         ],
                       ),
@@ -428,9 +476,9 @@ class MyHomePage extends HookConsumerWidget {
                   ),
                 ),
               ),
-            ],
+            ),
           ),
-        ),
+        ],
       ),
     );
   }

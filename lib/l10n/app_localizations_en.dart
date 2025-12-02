@@ -56,4 +56,10 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get uniqueChars => 'Don\'t use the same characters';
+
+  @override
+  String get generated => 'Generated a password';
+
+  @override
+  String get retry => 'Change settings and retry';
 }
