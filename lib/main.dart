@@ -110,8 +110,9 @@ class MyHomePage extends HookConsumerWidget {
     final currentLocale = ref.watch(localeProvider);
     final screenWidth = MediaQuery.of(context).size.width;
     const breakpointMobile = 480.0;
+    final charset = useState<String>(generateChars(HonkipassParam()));
     final password = useState(
-      generatePassword(HonkipassParam(), generateChars(HonkipassParam())),
+      generatePassword(HonkipassParam(), charset.value),
     );
     final message = useState<String>(l10n.generated);
     final passwordController = useTextEditingController(text: password.value);
@@ -156,7 +157,8 @@ class MyHomePage extends HookConsumerWidget {
         excludedChars: excludedChars.value,
       );
 
-      final newPassword = generatePassword(param, generateChars(param));
+      charset.value = generateChars(param);
+      final newPassword = generatePassword(param, charset.value);
       if (newPassword.isNotEmpty) {
         password.value = newPassword;
         passwordController.text = newPassword;
@@ -358,7 +360,7 @@ class MyHomePage extends HookConsumerWidget {
                               ),
                             ),
                             style: TextStyle(
-                              fontFamily: 'monospace',
+                              fontFamily: 'Monospace',
                               color: isError
                                   ? Theme.of(context).colorScheme.error
                                   : null,
@@ -372,8 +374,7 @@ class MyHomePage extends HookConsumerWidget {
               ),
             ),
           ),
-          SliverFillRemaining(
-            hasScrollBody: false,
+          SliverToBoxAdapter(
             child: Center(
               child: SizedBox(
                 width: contentWidth,
@@ -382,7 +383,41 @@ class MyHomePage extends HookConsumerWidget {
                     horizontal: contentPadding,
                   ),
                   child: Column(
+                    spacing: 16.0,
                     children: [
+                      Wrap(
+                        alignment: WrapAlignment.start,
+                        spacing: 1.0,
+                        children: charSetAll
+                            .split('')
+                            .toList()
+                            .map(
+                              (c) => Text(
+                                c,
+                                style: TextStyle(
+                                  fontFamily: 'Monospace',
+                                  fontSize: Theme.of(
+                                    context,
+                                  ).textTheme.bodyMedium?.fontSize,
+                                  backgroundColor: password.value.contains(c)
+                                      ? Theme.of(
+                                          context,
+                                        ).colorScheme.tertiaryContainer
+                                      : charset.value.contains(c)
+                                      ? null
+                                      : Theme.of(
+                                          context,
+                                        ).colorScheme.inverseSurface,
+                                  color: charset.value.contains(c)
+                                      ? null
+                                      : Theme.of(
+                                          context,
+                                        ).colorScheme.onInverseSurface,
+                                ),
+                              ),
+                            )
+                            .toList(),
+                      ),
                       Row(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
@@ -404,7 +439,7 @@ class MyHomePage extends HookConsumerWidget {
                             ),
                           Expanded(
                             child: Padding(
-                              padding: const EdgeInsets.only(top: 16.0),
+                              padding: const EdgeInsets.only(top: 32.0),
                               child: Slider(
                                 value: lengthIndex.value.toDouble(),
                                 min: 0,
@@ -419,7 +454,6 @@ class MyHomePage extends HookConsumerWidget {
                           ),
                         ],
                       ),
-                      const SizedBox(height: 16.0),
                       Wrap(
                         direction: Axis.horizontal,
                         alignment: WrapAlignment.center,
@@ -442,7 +476,6 @@ class MyHomePage extends HookConsumerWidget {
                           ),
                         ],
                       ),
-                      const SizedBox(height: 16.0),
                       Wrap(
                         direction: Axis.horizontal,
                         alignment: WrapAlignment.center,
@@ -478,8 +511,8 @@ class MyHomePage extends HookConsumerWidget {
                           ),
                         ],
                       ),
-                      const SizedBox(height: 16.0),
                       Row(
+                        spacing: 12.0,
                         children: [
                           Expanded(
                             child: TextField(
@@ -492,10 +525,9 @@ class MyHomePage extends HookConsumerWidget {
                                 border: const OutlineInputBorder(),
                                 labelText: l10n.excludedChars,
                               ),
-                              style: TextStyle(fontFamily: 'monospace'),
+                              style: TextStyle(fontFamily: 'Monospace'),
                             ),
                           ),
-                          const SizedBox(width: 8.0),
                           Switch(
                             value: applyExcluded.value,
                             onChanged: preset.value == Preset.manual
@@ -504,7 +536,6 @@ class MyHomePage extends HookConsumerWidget {
                           ),
                         ],
                       ),
-                      const SizedBox(height: 16.0),
                       Row(
                         children: [
                           Expanded(child: Text(l10n.allTypes)),
@@ -514,7 +545,6 @@ class MyHomePage extends HookConsumerWidget {
                           ),
                         ],
                       ),
-                      const SizedBox(height: 16.0),
                       Row(
                         children: [
                           Expanded(child: Text(l10n.uniqueChars)),
@@ -524,7 +554,6 @@ class MyHomePage extends HookConsumerWidget {
                           ),
                         ],
                       ),
-                      const SizedBox(height: 24),
                       Wrap(
                         spacing: 16.0,
                         runSpacing: 4.0,
@@ -541,7 +570,7 @@ class MyHomePage extends HookConsumerWidget {
                           ),
                           packageInfo.when(
                             data: (info) => Text(
-                              'v${info.version}(${info.buildNumber}) © 2025 Michinobu Maeda',
+                              'v${info.version}(${info.buildNumber})',
                               style: Theme.of(context).textTheme.bodySmall,
                             ),
                             loading: () => const Text(''),
@@ -549,7 +578,6 @@ class MyHomePage extends HookConsumerWidget {
                           ),
                         ],
                       ),
-                      const SizedBox(height: 16),
                     ],
                   ),
                 ),
