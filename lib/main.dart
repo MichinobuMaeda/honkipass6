@@ -3,6 +3,8 @@ import 'package:flutter/services.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:flutter_riverpod/legacy.dart';
+import 'package:url_launcher/url_launcher.dart';
+import 'package:package_info_plus/package_info_plus.dart';
 import 'l10n/app_localizations.dart';
 import 'widgets/app_bar_action.dart';
 import 'widgets/selectable_popup_menu_item.dart';
@@ -13,12 +15,13 @@ import 'honkipass.dart';
 const contentWidth = 640.0;
 const contentPadding = 16.0;
 
-// 1. Create a provider for the theme mode
 final themeModeProvider = StateProvider<ThemeMode>((ref) => ThemeMode.system);
 final localeProvider = StateProvider<Locale>((ref) => const Locale('ja'));
+final packageInfoProvider = FutureProvider<PackageInfo>((ref) async {
+  return await PackageInfo.fromPlatform();
+});
 
 void main() {
-  // 2. Wrap the app in a ProviderScope
   runApp(const ProviderScope(child: MyApp()));
 }
 
@@ -27,7 +30,6 @@ class MyApp extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    // 3. Watch the theme mode provider
     final themeMode = ref.watch(themeModeProvider);
     final locale = ref.watch(localeProvider);
 
@@ -72,6 +74,7 @@ class MyHomePage extends HookConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = AppLocalizations.of(context)!;
+    final packageInfo = ref.watch(packageInfoProvider);
     final themeList = [
       ThemeMenuItem(
         mode: ThemeMode.light,
@@ -188,6 +191,20 @@ class MyHomePage extends HookConsumerWidget {
           });
     }
 
+    final Uri githubUrl = Uri.parse(
+      'https://github.com/MichinobuMaeda/honkipass6',
+    );
+
+    Future<void> launchGithubUrl() async {
+      if (!await launchUrl(githubUrl)) {
+        if (context.mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Could not launch GitHub.')),
+          );
+        }
+      }
+    }
+
     useEffect(
       () {
         calc();
@@ -294,23 +311,60 @@ class MyHomePage extends HookConsumerWidget {
                         horizontal: contentPadding,
                         vertical: 12.0,
                       ),
-                      child: TextField(
-                        readOnly: true,
-                        controller: passwordController,
-                        decoration: InputDecoration(
-                          border: const OutlineInputBorder(),
-                          labelText: l10n.password,
-                          helperText: message.value,
-                          prefixIcon: IconButton(
-                            icon: const Icon(Icons.content_copy),
-                            onPressed: copyPassword,
-                          ),
-                          suffixIcon: IconButton(
-                            icon: const Icon(Icons.refresh),
-                            onPressed: calc,
-                          ),
-                        ),
-                        style: TextStyle(fontFamily: 'monospace'),
+                      child: ValueListenableBuilder<String>(
+                        valueListenable: message,
+                        builder: (context, value, child) {
+                          final isError = value == l10n.retry;
+                          return TextField(
+                            readOnly: true,
+                            controller: passwordController,
+                            decoration: InputDecoration(
+                              border: const OutlineInputBorder(),
+                              labelText: l10n.password,
+                              helperText: value,
+                              helperStyle: isError
+                                  ? TextStyle(
+                                      color: Theme.of(
+                                        context,
+                                      ).colorScheme.error,
+                                    )
+                                  : null,
+                              enabledBorder: isError
+                                  ? OutlineInputBorder(
+                                      borderSide: BorderSide(
+                                        color: Theme.of(
+                                          context,
+                                        ).colorScheme.error,
+                                      ),
+                                    )
+                                  : null,
+                              focusedBorder: isError
+                                  ? OutlineInputBorder(
+                                      borderSide: BorderSide(
+                                        color: Theme.of(
+                                          context,
+                                        ).colorScheme.error,
+                                        width: 2.0,
+                                      ),
+                                    )
+                                  : null,
+                              prefixIcon: IconButton(
+                                icon: const Icon(Icons.content_copy),
+                                onPressed: copyPassword,
+                              ),
+                              suffixIcon: IconButton(
+                                icon: const Icon(Icons.refresh),
+                                onPressed: calc,
+                              ),
+                            ),
+                            style: TextStyle(
+                              fontFamily: 'monospace',
+                              color: isError
+                                  ? Theme.of(context).colorScheme.error
+                                  : null,
+                            ),
+                          );
+                        },
                       ),
                     ),
                   ),
@@ -328,7 +382,6 @@ class MyHomePage extends HookConsumerWidget {
                     horizontal: contentPadding,
                   ),
                   child: Column(
-                    spacing: 16.0,
                     children: [
                       Row(
                         crossAxisAlignment: CrossAxisAlignment.start,
@@ -342,9 +395,9 @@ class MyHomePage extends HookConsumerWidget {
                             FilledButton.tonal(
                               onPressed: isChanged ? onReset : null,
                               child: Row(
-                                spacing: 8.0,
                                 children: [
                                   const Icon(Icons.settings_backup_restore),
+                                  const SizedBox(width: 8.0),
                                   Text(l10n.reset),
                                 ],
                               ),
@@ -366,6 +419,7 @@ class MyHomePage extends HookConsumerWidget {
                           ),
                         ],
                       ),
+                      const SizedBox(height: 16.0),
                       Wrap(
                         direction: Axis.horizontal,
                         alignment: WrapAlignment.center,
@@ -388,6 +442,7 @@ class MyHomePage extends HookConsumerWidget {
                           ),
                         ],
                       ),
+                      const SizedBox(height: 16.0),
                       Wrap(
                         direction: Axis.horizontal,
                         alignment: WrapAlignment.center,
@@ -423,8 +478,8 @@ class MyHomePage extends HookConsumerWidget {
                           ),
                         ],
                       ),
+                      const SizedBox(height: 16.0),
                       Row(
-                        spacing: 8.0,
                         children: [
                           Expanded(
                             child: TextField(
@@ -440,6 +495,7 @@ class MyHomePage extends HookConsumerWidget {
                               style: TextStyle(fontFamily: 'monospace'),
                             ),
                           ),
+                          const SizedBox(width: 8.0),
                           Switch(
                             value: applyExcluded.value,
                             onChanged: preset.value == Preset.manual
@@ -448,8 +504,8 @@ class MyHomePage extends HookConsumerWidget {
                           ),
                         ],
                       ),
+                      const SizedBox(height: 16.0),
                       Row(
-                        spacing: 8.0,
                         children: [
                           Expanded(child: Text(l10n.allTypes)),
                           Switch(
@@ -458,8 +514,8 @@ class MyHomePage extends HookConsumerWidget {
                           ),
                         ],
                       ),
+                      const SizedBox(height: 16.0),
                       Row(
-                        spacing: 8.0,
                         children: [
                           Expanded(child: Text(l10n.uniqueChars)),
                           Switch(
@@ -468,10 +524,32 @@ class MyHomePage extends HookConsumerWidget {
                           ),
                         ],
                       ),
-                      Text(
-                        '© 2025 Michinobu Maeda',
-                        style: Theme.of(context).textTheme.bodySmall,
+                      const SizedBox(height: 24),
+                      Wrap(
+                        spacing: 16.0,
+                        runSpacing: 4.0,
+                        alignment: WrapAlignment.center,
+                        crossAxisAlignment: WrapCrossAlignment.center,
+                        children: [
+                          Text(
+                            '© 2025 Michinobu Maeda',
+                            style: Theme.of(context).textTheme.bodySmall,
+                          ),
+                          TextButton(
+                            onPressed: launchGithubUrl,
+                            child: const Text('GitHub'),
+                          ),
+                          packageInfo.when(
+                            data: (info) => Text(
+                              'v${info.version}(${info.buildNumber}) © 2025 Michinobu Maeda',
+                              style: Theme.of(context).textTheme.bodySmall,
+                            ),
+                            loading: () => const Text(''),
+                            error: (e, s) => const Text(''),
+                          ),
+                        ],
                       ),
+                      const SizedBox(height: 16),
                     ],
                   ),
                 ),
