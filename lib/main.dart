@@ -261,25 +261,20 @@ class MyHomePage extends HookConsumerWidget {
                   itemBuilder: (BuildContext context) =>
                       <PopupMenuEntry<dynamic>>[
                         ...languageList.map(
-                          (item) =>
-                              SelectablePopupMenuItem<Locale>(
-                                    value: item.locale,
-                                    icon: Text(item.shortName),
-                                    label: Text(item.label),
-                                    isSelected: currentLocale == item.locale,
-                                  )
-                                  as PopupMenuItem<Locale>,
+                          (item) => SelectablePopupMenuItem<Locale>(
+                            value: item.locale,
+                            label: Text(item.label),
+                            isSelected: currentLocale == item.locale,
+                          ),
                         ),
                         const PopupMenuDivider(),
                         ...themeList.map(
-                          (item) =>
-                              SelectablePopupMenuItem<ThemeMode>(
-                                    value: item.mode,
-                                    icon: Icon(item.icon),
-                                    label: Text(item.label),
-                                    isSelected: currentThemeMode == item.mode,
-                                  )
-                                  as PopupMenuItem<ThemeMode>,
+                          (item) => SelectablePopupMenuItem<ThemeMode>(
+                            value: item.mode,
+                            icon: Icon(item.icon),
+                            label: Text(item.label),
+                            isSelected: currentThemeMode == item.mode,
+                          ),
                         ),
                       ],
                 )
@@ -317,7 +312,7 @@ class MyHomePage extends HookConsumerWidget {
                         valueListenable: message,
                         builder: (context, value, child) {
                           final isError = value == l10n.retry;
-                          return TextField(
+                          return TextFormField(
                             readOnly: true,
                             controller: passwordController,
                             decoration: InputDecoration(
@@ -326,28 +321,19 @@ class MyHomePage extends HookConsumerWidget {
                               helperText: value,
                               helperStyle: isError
                                   ? TextStyle(
-                                      color: Theme.of(
-                                        context,
-                                      ).colorScheme.error,
-                                    )
+                                      color: Theme.of(context).colorScheme.error)
                                   : null,
                               enabledBorder: isError
                                   ? OutlineInputBorder(
                                       borderSide: BorderSide(
-                                        color: Theme.of(
-                                          context,
-                                        ).colorScheme.error,
-                                      ),
+                                          color: Theme.of(context).colorScheme.error),
                                     )
                                   : null,
                               focusedBorder: isError
                                   ? OutlineInputBorder(
                                       borderSide: BorderSide(
-                                        color: Theme.of(
-                                          context,
-                                        ).colorScheme.error,
-                                        width: 2.0,
-                                      ),
+                                          color: Theme.of(context).colorScheme.error,
+                                          width: 2.0),
                                     )
                                   : null,
                               prefixIcon: IconButton(
@@ -383,7 +369,6 @@ class MyHomePage extends HookConsumerWidget {
                     horizontal: contentPadding,
                   ),
                   child: Column(
-                    spacing: 16.0,
                     children: [
                       Wrap(
                         alignment: WrapAlignment.start,
@@ -402,22 +387,23 @@ class MyHomePage extends HookConsumerWidget {
                                   backgroundColor: password.value.contains(c)
                                       ? Theme.of(
                                           context,
-                                        ).colorScheme.tertiaryContainer
+                                        ).colorScheme.errorContainer
                                       : charset.value.contains(c)
-                                      ? null
-                                      : Theme.of(
-                                          context,
-                                        ).colorScheme.inverseSurface,
+                                          ? null
+                                          : Theme.of(
+                                              context,
+                                            ).colorScheme.secondaryContainer,
                                   color: charset.value.contains(c)
                                       ? null
                                       : Theme.of(
                                           context,
-                                        ).colorScheme.onInverseSurface,
+                                        ).colorScheme.secondary,
                                 ),
                               ),
                             )
                             .toList(),
                       ),
+                      const SizedBox(height: 16.0),
                       Row(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
@@ -439,7 +425,7 @@ class MyHomePage extends HookConsumerWidget {
                             ),
                           Expanded(
                             child: Padding(
-                              padding: const EdgeInsets.only(top: 32.0),
+                              padding: const EdgeInsets.only(top: 16.0),
                               child: Slider(
                                 value: lengthIndex.value.toDouble(),
                                 min: 0,
@@ -454,6 +440,7 @@ class MyHomePage extends HookConsumerWidget {
                           ),
                         ],
                       ),
+                      const SizedBox(height: 16.0),
                       Wrap(
                         direction: Axis.horizontal,
                         alignment: WrapAlignment.center,
@@ -476,6 +463,7 @@ class MyHomePage extends HookConsumerWidget {
                           ),
                         ],
                       ),
+                      const SizedBox(height: 16.0),
                       Wrap(
                         direction: Axis.horizontal,
                         alignment: WrapAlignment.center,
@@ -511,8 +499,8 @@ class MyHomePage extends HookConsumerWidget {
                           ),
                         ],
                       ),
+                      const SizedBox(height: 16.0),
                       Row(
-                        spacing: 12.0,
                         children: [
                           Expanded(
                             child: TextField(
@@ -528,6 +516,7 @@ class MyHomePage extends HookConsumerWidget {
                               style: TextStyle(fontFamily: 'Monospace'),
                             ),
                           ),
+                          const SizedBox(width: 8.0),
                           Switch(
                             value: applyExcluded.value,
                             onChanged: preset.value == Preset.manual
@@ -536,6 +525,7 @@ class MyHomePage extends HookConsumerWidget {
                           ),
                         ],
                       ),
+                      const SizedBox(height: 16.0),
                       Row(
                         children: [
                           Expanded(child: Text(l10n.allTypes)),
@@ -545,6 +535,7 @@ class MyHomePage extends HookConsumerWidget {
                           ),
                         ],
                       ),
+                      const SizedBox(height: 16.0),
                       Row(
                         children: [
                           Expanded(child: Text(l10n.uniqueChars)),
@@ -554,23 +545,24 @@ class MyHomePage extends HookConsumerWidget {
                           ),
                         ],
                       ),
+                      const SizedBox(height: 24),
                       Wrap(
                         spacing: 16.0,
                         runSpacing: 4.0,
                         alignment: WrapAlignment.center,
                         crossAxisAlignment: WrapCrossAlignment.center,
                         children: [
-                          Text(
-                            '© 2025 Michinobu Maeda',
-                            style: Theme.of(context).textTheme.bodySmall,
-                          ),
+                           Text(
+                              '© 2025 Michinobu Maeda',
+                              style: Theme.of(context).textTheme.bodySmall,
+                            ),
                           TextButton(
                             onPressed: launchGithubUrl,
                             child: const Text('GitHub'),
                           ),
                           packageInfo.when(
                             data: (info) => Text(
-                              'v${info.version}(${info.buildNumber})',
+                              'v${info.version}+${info.buildNumber}',
                               style: Theme.of(context).textTheme.bodySmall,
                             ),
                             loading: () => const Text(''),
@@ -578,6 +570,7 @@ class MyHomePage extends HookConsumerWidget {
                           ),
                         ],
                       ),
+                      const SizedBox(height: 16),
                     ],
                   ),
                 ),

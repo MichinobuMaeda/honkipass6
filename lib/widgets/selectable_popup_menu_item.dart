@@ -1,31 +1,27 @@
 import 'package:flutter/material.dart';
 
-class SelectablePopupMenuItem<T> extends StatelessWidget {
-  final T value;
-  final Widget? icon;
-  final Widget label;
-  final bool isSelected;
-
-  const SelectablePopupMenuItem({
+class SelectablePopupMenuItem<T> extends PopupMenuItem<T> {
+  SelectablePopupMenuItem({
     super.key,
-    required this.value,
-    this.icon,
-    required this.label,
-    this.isSelected = false,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return PopupMenuItem<T>(
-      value: value,
-      padding: EdgeInsets.zero,
-      child: Expanded(child:  Container(
-        alignment: Alignment.centerLeft,
-        color: isSelected 
-            ? Theme.of(context).colorScheme.secondaryContainer
-            : null,
-        child: Row(children: [icon ?? const SizedBox(width: 24.0), label]),
-      ),
-    ));
-  }
+    required T super.value,
+    Widget? icon,
+    required Widget label,
+    bool isSelected = false,
+  }) : super(
+         padding: EdgeInsets.zero,
+         child: Builder(
+           builder: (context) => Container(
+             alignment: Alignment.centerLeft,
+             height: kMinInteractiveDimension,
+             color: isSelected
+                 ? Theme.of(context).colorScheme.secondaryContainer
+                 : null,
+             padding: const EdgeInsets.symmetric(horizontal: 16.0),
+             child: Row(
+               spacing: 8.0,
+               children: <Widget>[icon ?? SizedBox(width: 24.0), label],
+             ),
+           ),
+         ),
+       );
 }
