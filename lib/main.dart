@@ -4,7 +4,14 @@ import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:flutter_riverpod/legacy.dart';
 import 'l10n/app_localizations.dart';
+import 'widgets/app_bar_action.dart';
+import 'widgets/selectable_popup_menu_item.dart';
+import 'widgets/toggle_button.dart';
+import 'theme.dart';
 import 'honkipass.dart';
+
+const contentWidth = 640.0;
+const contentPadding = 16.0;
 
 // 1. Create a provider for the theme mode
 final themeModeProvider = StateProvider<ThemeMode>((ref) => ThemeMode.system);
@@ -23,18 +30,6 @@ class MyApp extends ConsumerWidget {
     // 3. Watch the theme mode provider
     final themeMode = ref.watch(themeModeProvider);
     final locale = ref.watch(localeProvider);
-
-    final themeData = ThemeData(
-      useMaterial3: true,
-      colorScheme: ColorScheme.fromSeed(seedColor: Colors.teal),
-    );
-    final darkThemeData = ThemeData(
-      useMaterial3: true,
-      colorScheme: ColorScheme.fromSeed(
-        seedColor: Colors.teal,
-        brightness: Brightness.dark,
-      ),
-    );
 
     return MaterialApp(
       onGenerateTitle: (context) => AppLocalizations.of(context)!.appTitle,
@@ -125,18 +120,21 @@ class MyHomePage extends HookConsumerWidget {
     final uniqueChars = useState(defaultUniqueChars);
     final applyExcluded = useState(defaultApplyExcluded);
     final excludedChars = useState(defaultExcludedChars);
+    final excludedCharsController = useTextEditingController(
+      text: excludedChars.value,
+    );
 
     final isChanged =
         lengthIndex.value != lengthList.indexOf(defaultLength) ||
-        preset.value != defaultPreset ||
-        lowerCase.value != defaultLowerCase ||
-        upperCase.value != defaultUpperCase ||
-        numerics.value != defaultNumerics ||
-        symbols.value != defaultSymbols ||
-        allTypes.value != defaultAllTypes ||
-        uniqueChars.value != defaultUniqueChars ||
-        applyExcluded.value != defaultApplyExcluded ||
-        excludedChars.value != defaultExcludedChars;
+            preset.value != defaultPreset ||
+            lowerCase.value != defaultLowerCase ||
+            upperCase.value != defaultUpperCase ||
+            numerics.value != defaultNumerics ||
+            symbols.value != defaultSymbols ||
+            allTypes.value != defaultAllTypes ||
+            uniqueChars.value != defaultUniqueChars ||
+            applyExcluded.value != defaultApplyExcluded ||
+            excludedChars.value != defaultExcludedChars;
 
     void onReset() {
       lengthIndex.value = lengthList.indexOf(defaultLength);
@@ -149,6 +147,15 @@ class MyHomePage extends HookConsumerWidget {
       uniqueChars.value = defaultUniqueChars;
       applyExcluded.value = defaultApplyExcluded;
       excludedChars.value = defaultExcludedChars;
+      excludedCharsController.text = defaultExcludedChars;
+    }
+
+    void copyPassword() {
+      Clipboard.setData(ClipboardData(text: password.value)).then((_) {
+        message.value = l10n.copied;
+      }).catchError((_) {
+        message.value = l10n.failedToCopy;
+      });
     }
 
     return Scaffold(
@@ -162,8 +169,8 @@ class MyHomePage extends HookConsumerWidget {
         title: Text(
           l10n.appTitle,
           style: Theme.of(context).textTheme.titleLarge?.copyWith(
-            color: Theme.of(context).colorScheme.onSurface,
-          ),
+                color: Theme.of(context).colorScheme.onSurface,
+              ),
         ),
         actions: [
           if (screenWidth < breakpointMobile)
@@ -179,81 +186,54 @@ class MyHomePage extends HookConsumerWidget {
               },
               itemBuilder: (BuildContext context) => <PopupMenuEntry<dynamic>>[
                 ...languageList.map(
-                  (item) => PopupMenuItem<Locale>(
+                  (item) => SelectablePopupMenuItem<Locale>(
                     value: item.locale,
-                    padding: EdgeInsets.zero,
-                    child: Container(
-                      alignment: Alignment.centerLeft,
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 16.0,
-                        vertical: 8.0,
-                      ),
-                      color: currentLocale == item.locale
-                          ? Theme.of(context).colorScheme.secondaryContainer
-                          : null,
-                      child: Row(
-                        children: [
-                          const SizedBox(width: 24.0),
-                          Text(item.label),
-                        ],
-                      ),
-                    ),
-                  ),
+                    icon: Text(item.shortName),
+                    label: Text(item.label),
+                    isSelected: currentLocale == item.locale,
+                  ) as PopupMenuItem<Locale>,
                 ),
                 const PopupMenuDivider(),
                 ...themeList.map(
-                  (item) => PopupMenuItem<ThemeMode>(
+                  (item) => SelectablePopupMenuItem<ThemeMode>(
                     value: item.mode,
-                    padding: EdgeInsets.zero,
-                    child: Container(
-                      alignment: Alignment.centerLeft,
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 16.0,
-                        vertical: 8.0,
-                      ),
-                      color: currentThemeMode == item.mode
-                          ? Theme.of(context).colorScheme.secondaryContainer
-                          : null,
-                      child: Row(children: [Icon(item.icon), Text(item.label)]),
-                    ),
-                  ),
+                    icon: Icon(item.icon),
+                    label: Text(item.label),
+                    isSelected: currentThemeMode == item.mode,
+                  ) as PopupMenuItem<ThemeMode>,
                 ),
               ],
             )
           else ...[
             ...languageList.map(
-              (item) => currentLocale == item.locale
-                  ? IconButton.filledTonal(
-                      icon: Text(item.shortName),
-                      onPressed: () => setLocale(item.locale),
-                    )
-                  : IconButton(
-                      icon: Text(item.shortName),
-                      onPressed: () => setLocale(item.locale),
-                    ),
+              (item) => AppBarAction(
+                icon: Text(item.shortName),
+                isSelected: currentLocale == item.locale,
+                onPressed: () => setLocale(item.locale),
+              ),
             ),
             ...themeList.map(
-              (item) => currentThemeMode == item.mode
-                  ? IconButton.filledTonal(
-                      icon: Icon(item.icon),
-                      onPressed: () => setThemeMode(item.mode),
-                    )
-                  : IconButton(
-                      icon: Icon(item.icon),
-                      onPressed: () => setThemeMode(item.mode),
-                    ),
+              (item) => AppBarAction(
+                icon: Icon(item.icon),
+                isSelected: currentThemeMode == item.mode,
+                onPressed: () => setThemeMode(item.mode),
+              ),
             ),
           ],
+          SizedBox(width: 4.0),
         ],
         bottom: PreferredSize(
-          preferredSize: const Size.fromHeight(100.0),
+          preferredSize: const Size.fromHeight(92.0),
           child: Container(
             color: Theme.of(context).colorScheme.surfaceContainerLowest,
             child: Center(
               child: SizedBox(
-                width: 640,
+                width: contentWidth,
                 child: Padding(
-                  padding: const EdgeInsets.all(16.0),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: contentPadding,
+                    vertical: 12.0,
+                  ),
                   child: TextField(
                     readOnly: true,
                     controller: useTextEditingController(text: password.value),
@@ -263,21 +243,14 @@ class MyHomePage extends HookConsumerWidget {
                       helperText: message.value,
                       prefixIcon: IconButton(
                         icon: const Icon(Icons.content_copy),
-                        onPressed: () {
-                          Clipboard.setData(ClipboardData(text: password.value))
-                              .then((_) {
-                                message.value = l10n.copied;
-                              })
-                              .catchError((_) {
-                                message.value = l10n.failedToCopy;
-                              });
-                        },
+                        onPressed: copyPassword,
                       ),
                       suffixIcon: IconButton(
                         icon: const Icon(Icons.refresh),
                         onPressed: () {},
                       ),
                     ),
+                    style: TextStyle(fontFamily: 'monospace'),
                   ),
                 ),
               ),
@@ -287,14 +260,17 @@ class MyHomePage extends HookConsumerWidget {
       ),
       body: Center(
         child: SizedBox(
-          width: 640,
+          width: contentWidth,
           child: CustomScrollView(
             slivers: [
               SliverFillRemaining(
                 hasScrollBody: false,
                 child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: contentPadding,
+                  ),
                   child: Column(
+                    spacing: 8.0,
                     children: [
                       Row(
                         crossAxisAlignment: CrossAxisAlignment.start,
@@ -307,24 +283,10 @@ class MyHomePage extends HookConsumerWidget {
                           else
                             FilledButton.tonal(
                               onPressed: isChanged ? onReset : null,
-                              style: ButtonStyle(
-                                padding: WidgetStateProperty.all(
-                                  EdgeInsets.symmetric(
-                                    vertical: 8.0,
-                                    horizontal: 16.0,
-                                  ),
-                                ),
-                                shape: WidgetStateProperty.all(
-                                  RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(8.0),
-                                  ),
-                                ),
-                              ),
                               child: Row(
-                                mainAxisSize: MainAxisSize.min,
+                                spacing: 8.0,
                                 children: [
                                   const Icon(Icons.settings_backup_restore),
-                                  const SizedBox(width: 8.0),
                                   Text(l10n.reset),
                                 ],
                               ),
@@ -353,7 +315,111 @@ class MyHomePage extends HookConsumerWidget {
                           ),
                         ],
                       ),
-
+                      Wrap(
+                        direction: Axis.horizontal,
+                        alignment: WrapAlignment.center,
+                        spacing: 4.0,
+                        children: [
+                          ToggleButton(
+                            label: Text(l10n.std(charSetStd.length)),
+                            isSelected: preset.value == Preset.std,
+                            onPressed: () => preset.value = Preset.std,
+                          ),
+                          ToggleButton(
+                            label: Text(l10n.ext(charSetExt.length)),
+                            isSelected: preset.value == Preset.ext,
+                            onPressed: () => preset.value = Preset.ext,
+                          ),
+                          ToggleButton(
+                            label: Text(l10n.manual),
+                            isSelected: preset.value == Preset.manual,
+                            onPressed: () => preset.value = Preset.manual,
+                          ),
+                        ],
+                      ),
+                      Wrap(
+                        direction: Axis.horizontal,
+                        alignment: WrapAlignment.center,
+                        spacing: 4.0,
+                        children: [
+                          ToggleButton(
+                            label: Text('ABC'),
+                            isSelected: upperCase.value,
+                            onPressed: preset.value == Preset.manual
+                                ? () => upperCase.value = !upperCase.value
+                                : null,
+                          ),
+                          ToggleButton(
+                            label: Text('abc'),
+                            isSelected: lowerCase.value,
+                            onPressed: preset.value == Preset.manual
+                                ? () => lowerCase.value = !lowerCase.value
+                                : null,
+                          ),
+                          ToggleButton(
+                            label: Text('123'),
+                            isSelected: numerics.value,
+                            onPressed: preset.value == Preset.manual
+                                ? () => numerics.value = !numerics.value
+                                : null,
+                          ),
+                          ToggleButton(
+                            label: Text('@#\$'),
+                            isSelected: symbols.value,
+                            onPressed: preset.value == Preset.manual
+                                ? () => symbols.value = !symbols.value
+                                : null,
+                          ),
+                        ],
+                      ),
+                      Row(
+                        spacing: 8.0,
+                        children: [
+                          Expanded(
+                            child: TextField(
+                              controller: excludedCharsController,
+                              enabled: preset.value == Preset.manual,
+                              onChanged: (value) {
+                                excludedChars.value = value;
+                              },
+                              decoration: InputDecoration(
+                                border: const OutlineInputBorder(),
+                                labelText: l10n.excludedChars,
+                              ),
+                            ),
+                          ),
+                          Switch(
+                            value: applyExcluded.value,
+                            onChanged: preset.value == Preset.manual
+                                ? (value) => applyExcluded.value = value
+                                : null,
+                          ),
+                        ],
+                      ),
+                      Row(
+                        spacing: 8.0,
+                        children: [
+                          Expanded(child: Text(l10n.allTypes)),
+                          Switch(
+                            value: allTypes.value,
+                            onChanged: preset.value == Preset.manual
+                                ? (value) => allTypes.value = value
+                                : null,
+                          ),
+                        ],
+                      ),
+                      Row(
+                        spacing: 8.0,
+                        children: [
+                          Expanded(child: Text(l10n.uniqueChars)),
+                          Switch(
+                            value: uniqueChars.value,
+                            onChanged: preset.value == Preset.manual
+                                ? (value) => uniqueChars.value = value
+                                : null,
+                          ),
+                        ],
+                      ),
                       Text(
                         '© 2025 Michinobu Maeda',
                         style: Theme.of(context).textTheme.bodySmall,

@@ -57,5 +57,17 @@
   "manual": "詳細設定",
   "@manual": {
     "description": "手動設定の文字セット"
+  },
+  "excludedChars": "除外する文字",
+  "@excludedChars": {
+    "description": "パスワードから除外する文字"
+  },
+  "allTypes": "すべての文字タイプを使用",
+  "@allTypes": {
+    "description": "利用可能なすべての文字タイプ（小文字、大文字、数字、記号）を使用します"
+  },
+  "uniqueChars": "同じ文字を繰り返し使わない",
+  "@uniqueChars": {
+    "description": "生成されるパスワードに重複した文字が含まれないようにします"
   }
 }

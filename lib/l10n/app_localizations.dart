@@ -169,6 +169,24 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Manual'**
   String get manual;
+
+  /// Characters to be excluded from the password
+  ///
+  /// In en, this message translates to:
+  /// **'Excluded characters'**
+  String get excludedChars;
+
+  /// Use all available character types (lowercase, uppercase, numerics, symbols)
+  ///
+  /// In en, this message translates to:
+  /// **'Use all character types'**
+  String get allTypes;
+
+  /// Ensure that the generated password does not contain duplicate characters
+  ///
+  /// In en, this message translates to:
+  /// **'Don\'t use the same characters'**
+  String get uniqueChars;
 }
 
 class _AppLocalizationsDelegate

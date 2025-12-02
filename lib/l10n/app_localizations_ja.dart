@@ -47,4 +47,13 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get manual => '詳細設定';
+
+  @override
+  String get excludedChars => '除外する文字';
+
+  @override
+  String get allTypes => 'すべての文字タイプを使用';
+
+  @override
+  String get uniqueChars => '同じ文字を繰り返し使わない';
 }

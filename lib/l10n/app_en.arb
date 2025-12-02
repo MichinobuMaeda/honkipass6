@@ -57,5 +57,17 @@
   "manual": "Manual",
   "@manual": {
     "description": "Select charactor set manually"
+  },
+  "excludedChars": "Excluded characters",
+  "@excludedChars": {
+    "description": "Characters to be excluded from the password"
+  },
+  "allTypes": "Use all character types",
+  "@allTypes": {
+    "description": "Use all available character types (lowercase, uppercase, numerics, symbols)"
+  },
+  "uniqueChars": "Don't use the same characters",
+  "@uniqueChars": {
+    "description": "Ensure that the generated password does not contain duplicate characters"
   }
 }

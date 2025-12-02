@@ -47,4 +47,13 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get manual => 'Manual';
+
+  @override
+  String get excludedChars => 'Excluded characters';
+
+  @override
+  String get allTypes => 'Use all character types';
+
+  @override
+  String get uniqueChars => 'Don\'t use the same characters';
 }
