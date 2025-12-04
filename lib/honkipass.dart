@@ -126,12 +126,15 @@ bool validatePassword(HonkipassParam param, String password) {
   return true;
 }
 
-String generatePassword(HonkipassParam param, String chars) {
+String? generatePassword(HonkipassParam param, String chars) {
+  if (chars.isEmpty) {
+    return null;
+  }
   for (var i = 0; i < maxTryCount; ++i) {
     final password = generateCandidate(param, chars);
     if (validatePassword(param, password)) {
       return password;
     }
   }
-  return "";
+  return null;
 }

@@ -2,27 +2,78 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import 'package:flutter_riverpod/legacy.dart';
 import 'package:url_launcher/url_launcher.dart';
-import 'package:package_info_plus/package_info_plus.dart';
 import 'l10n/app_localizations.dart';
 import 'widgets/app_bar_action.dart';
 import 'widgets/selectable_popup_menu_item.dart';
 import 'widgets/toggle_button.dart';
 import 'theme.dart';
+import 'providers.dart';
 import 'honkipass.dart';
 
 const contentWidth = 640.0;
 const contentPadding = 16.0;
 
-final themeModeProvider = StateProvider<ThemeMode>((ref) => ThemeMode.system);
-final localeProvider = StateProvider<Locale>((ref) => const Locale('ja'));
-final packageInfoProvider = FutureProvider<PackageInfo>((ref) async {
-  return await PackageInfo.fromPlatform();
-});
-
 void main() {
-  runApp(const ProviderScope(child: MyApp()));
+  runApp(ProviderScope(child: MyApp()));
+}
+
+Future<void> initPreferences(WidgetRef ref) async {
+  if (!ref.watch(preferencesInitializedProvider)) {
+    final prefs = ref.watch(prefsProvider);
+    debugPrint('start load preferences');
+    ref
+        .read(lengthIndexProvider.notifier)
+        .setLengthIndex(
+          lengthList.indexOf(await prefs.getInt('length') ?? defaultLength),
+        );
+    ref
+        .read(presetProvider.notifier)
+        .setPreset(Preset.values[await prefs.getInt('preset') ?? 0]);
+    ref
+        .read(upperCaseProvider.notifier)
+        .setUpperCase(await prefs.getBool('upperCase') ?? defaultUpperCase);
+    ref
+        .read(lowerCaseProvider.notifier)
+        .setLowerCase(await prefs.getBool('lowerCase') ?? defaultLowerCase);
+    ref
+        .read(numericsProvider.notifier)
+        .setNumerics(await prefs.getBool('numerics') ?? defaultNumerics);
+    ref
+        .read(symbolsProvider.notifier)
+        .setSymbols(await prefs.getBool('symbols') ?? defaultSymbols);
+    ref
+        .read(allTypesProvider.notifier)
+        .setAllTypes(await prefs.getBool('allTypes') ?? defaultAllTypes);
+    ref
+        .read(uniqueCharsProvider.notifier)
+        .setUniqueChars(
+          await prefs.getBool('uniqueChars') ?? defaultUniqueChars,
+        );
+    ref
+        .read(applyExcludedProvider.notifier)
+        .setApplyExcluded(
+          await prefs.getBool('applyExcluded') ?? defaultApplyExcluded,
+        );
+    ref
+        .read(excludedCharsProvider.notifier)
+        .setExcludedChars(
+          await prefs.getString('excludedChars') ?? defaultExcludedChars,
+        );
+    ref
+        .read(themeModeProvider.notifier)
+        .setThemeMode(
+          ThemeMode.values[await prefs.getInt('themeMode') ??
+              ThemeMode.values.indexOf(defaultThemeMode)],
+        );
+    ref
+        .read(localeProvider.notifier)
+        .setLocale(
+          Locale(await prefs.getString('locale') ?? defaultLocaleName),
+        );
+    ref.read(preferencesInitializedProvider.notifier).touch();
+    debugPrint('end   load preferences');
+  }
 }
 
 class MyApp extends ConsumerWidget {
@@ -30,6 +81,7 @@ class MyApp extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    initPreferences(ref);
     final themeMode = ref.watch(themeModeProvider);
     final locale = ref.watch(localeProvider);
 
@@ -74,7 +126,7 @@ class MyHomePage extends HookConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = AppLocalizations.of(context)!;
-    final packageInfo = ref.watch(packageInfoProvider);
+
     final themeList = [
       ThemeMenuItem(
         mode: ThemeMode.light,
@@ -98,89 +150,72 @@ class MyHomePage extends HookConsumerWidget {
       LanguageMenuItem(locale: Locale('en'), label: 'English', shortName: 'En'),
     ];
 
-    void setLocale(locale) {
-      ref.read(localeProvider.notifier).state = locale;
-    }
-
-    void setThemeMode(mode) {
-      ref.read(themeModeProvider.notifier).state = mode;
-    }
-
-    final currentThemeMode = ref.watch(themeModeProvider);
-    final currentLocale = ref.watch(localeProvider);
     final screenWidth = MediaQuery.of(context).size.width;
     const breakpointMobile = 480.0;
-    final charset = useState<String>(generateChars(HonkipassParam()));
-    final password = useState(
-      generatePassword(HonkipassParam(), charset.value),
-    );
     final message = useState<String>(l10n.generated);
-    final passwordController = useTextEditingController(text: password.value);
+    final passwordController = useTextEditingController(text: '');
+    final password = useState<String>('');
 
-    final lengthIndex = useState(lengthList.indexOf(defaultLength));
-    final preset = useState(defaultPreset);
-    final lowerCase = useState(defaultLowerCase);
-    final upperCase = useState(defaultUpperCase);
-    final numerics = useState(defaultNumerics);
-    final symbols = useState(defaultSymbols);
-    final allTypes = useState(defaultAllTypes);
-    final uniqueChars = useState(defaultUniqueChars);
-    final applyExcluded = useState(defaultApplyExcluded);
-    final excludedChars = useState(defaultExcludedChars);
-    final excludedCharsController = useTextEditingController(
-      text: excludedChars.value,
-    );
-
-    final isChanged =
-        lengthIndex.value != lengthList.indexOf(defaultLength) ||
-        preset.value != defaultPreset ||
-        lowerCase.value != defaultLowerCase ||
-        upperCase.value != defaultUpperCase ||
-        numerics.value != defaultNumerics ||
-        symbols.value != defaultSymbols ||
-        allTypes.value != defaultAllTypes ||
-        uniqueChars.value != defaultUniqueChars ||
-        applyExcluded.value != defaultApplyExcluded ||
-        excludedChars.value != defaultExcludedChars;
-
-    void calc() {
-      final param = HonkipassParam(
-        length: lengthList[lengthIndex.value],
-        preset: preset.value,
-        lowerCase: lowerCase.value,
-        upperCase: upperCase.value,
-        numerics: numerics.value,
-        symbols: symbols.value,
-        allTypes: allTypes.value,
-        uniqueChars: uniqueChars.value,
-        applyExcluded: applyExcluded.value,
-        excludedChars: excludedChars.value,
+    void generate() {
+      final newPassword = generatePassword(
+        ref.watch(honkipassParamProvider),
+        ref.watch(charsetProvider),
       );
-
-      charset.value = generateChars(param);
-      final newPassword = generatePassword(param, charset.value);
-      if (newPassword.isNotEmpty) {
+      if (newPassword == null) {
+        message.value = l10n.retry;
+      } else {
         password.value = newPassword;
         passwordController.text = newPassword;
         message.value = l10n.generated;
-      } else {
-        message.value = l10n.retry;
       }
     }
 
+    useEffect(() {
+      generate();
+      return null;
+    }, [ref.watch(honkipassParamProvider), ref.watch(charsetProvider)]);
+
+    final excludedCharsController = useTextEditingController(
+      text: ref.watch(excludedCharsProvider),
+    );
+
+    final isChanged =
+        ref.watch(lengthProvider) != defaultLength ||
+        ref.watch(presetProvider) != defaultPreset ||
+        ref.watch(lowerCaseProvider) != defaultLowerCase ||
+        ref.watch(upperCaseProvider) != defaultUpperCase ||
+        ref.watch(numericsProvider) != defaultNumerics ||
+        ref.watch(symbolsProvider) != defaultSymbols ||
+        ref.watch(allTypesProvider) != defaultAllTypes ||
+        ref.watch(uniqueCharsProvider) != defaultUniqueChars ||
+        ref.watch(applyExcludedProvider) != defaultApplyExcluded ||
+        ref.watch(excludedCharsProvider) != defaultExcludedChars;
+
+    final prefs = ref.watch(prefsProvider);
+
     void onReset() {
-      lengthIndex.value = lengthList.indexOf(defaultLength);
-      preset.value = defaultPreset;
-      lowerCase.value = defaultLowerCase;
-      upperCase.value = defaultUpperCase;
-      numerics.value = defaultNumerics;
-      symbols.value = defaultSymbols;
-      allTypes.value = defaultAllTypes;
-      uniqueChars.value = defaultUniqueChars;
-      applyExcluded.value = defaultApplyExcluded;
-      excludedChars.value = defaultExcludedChars;
-      excludedCharsController.text = defaultExcludedChars;
-      calc();
+      ref.read(lengthIndexProvider.notifier).reset();
+      ref.read(presetProvider.notifier).reset();
+      ref.read(lowerCaseProvider.notifier).reset();
+      ref.read(upperCaseProvider.notifier).reset();
+      ref.read(numericsProvider.notifier).reset();
+      ref.read(symbolsProvider.notifier).reset();
+      ref.read(allTypesProvider.notifier).reset();
+      ref.read(uniqueCharsProvider.notifier).reset();
+      ref.read(applyExcludedProvider.notifier).reset();
+      ref.read(excludedCharsProvider.notifier).reset();
+
+      final prefs = ref.watch(prefsProvider);
+      prefs.remove('length');
+      prefs.remove('preset');
+      prefs.remove('upperCase');
+      prefs.remove('lowerCase');
+      prefs.remove('numerics');
+      prefs.remove('symbols');
+      prefs.remove('allTypes');
+      prefs.remove('uniqueChars');
+      prefs.remove('applyExcluded');
+      prefs.remove('excludedChars');
     }
 
     void copyPassword() {
@@ -206,25 +241,6 @@ class MyHomePage extends HookConsumerWidget {
         }
       }
     }
-
-    useEffect(
-      () {
-        calc();
-        return null;
-      },
-      [
-        lengthIndex.value,
-        preset.value,
-        lowerCase.value,
-        upperCase.value,
-        numerics.value,
-        symbols.value,
-        allTypes.value,
-        uniqueChars.value,
-        applyExcluded.value,
-        excludedChars.value,
-      ],
-    );
 
     return Scaffold(
       backgroundColor: Theme.of(context).colorScheme.surfaceContainerLowest,
@@ -253,9 +269,14 @@ class MyHomePage extends HookConsumerWidget {
                   position: PopupMenuPosition.under,
                   onSelected: (dynamic value) {
                     if (value is Locale) {
-                      setLocale(value);
+                      ref.read(localeProvider.notifier).setLocale(value);
+                      prefs.setString('locale', value.toLanguageTag());
                     } else if (value is ThemeMode) {
-                      setThemeMode(value);
+                      ref.read(themeModeProvider.notifier).setThemeMode(value);
+                      prefs.setInt(
+                        'themeMode',
+                        ThemeMode.values.indexOf(value),
+                      );
                     }
                   },
                   itemBuilder: (BuildContext context) =>
@@ -264,7 +285,8 @@ class MyHomePage extends HookConsumerWidget {
                           (item) => SelectablePopupMenuItem<Locale>(
                             value: item.locale,
                             label: Text(item.label),
-                            isSelected: currentLocale == item.locale,
+                            isSelected:
+                                ref.watch(localeProvider) == item.locale,
                           ),
                         ),
                         const PopupMenuDivider(),
@@ -273,7 +295,8 @@ class MyHomePage extends HookConsumerWidget {
                             value: item.mode,
                             icon: Icon(item.icon),
                             label: Text(item.label),
-                            isSelected: currentThemeMode == item.mode,
+                            isSelected:
+                                ref.watch(themeModeProvider) == item.mode,
                           ),
                         ),
                       ],
@@ -282,15 +305,26 @@ class MyHomePage extends HookConsumerWidget {
                 ...languageList.map(
                   (item) => AppBarAction(
                     icon: Text(item.shortName),
-                    isSelected: currentLocale == item.locale,
-                    onPressed: () => setLocale(item.locale),
+                    isSelected: ref.watch(localeProvider) == item.locale,
+                    onPressed: () {
+                      ref.read(localeProvider.notifier).setLocale(item.locale);
+                      prefs.setString('locale', item.locale.toLanguageTag());
+                    },
                   ),
                 ),
                 ...themeList.map(
                   (item) => AppBarAction(
                     icon: Icon(item.icon),
-                    isSelected: currentThemeMode == item.mode,
-                    onPressed: () => setThemeMode(item.mode),
+                    isSelected: ref.watch(themeModeProvider) == item.mode,
+                    onPressed: () {
+                      ref
+                          .read(themeModeProvider.notifier)
+                          .setThemeMode(item.mode);
+                      prefs.setInt(
+                        'themeMode',
+                        ThemeMode.values.indexOf(item.mode),
+                      );
+                    },
                   ),
                 ),
               ],
@@ -321,19 +355,28 @@ class MyHomePage extends HookConsumerWidget {
                               helperText: value,
                               helperStyle: isError
                                   ? TextStyle(
-                                      color: Theme.of(context).colorScheme.error)
+                                      color: Theme.of(
+                                        context,
+                                      ).colorScheme.error,
+                                    )
                                   : null,
                               enabledBorder: isError
                                   ? OutlineInputBorder(
                                       borderSide: BorderSide(
-                                          color: Theme.of(context).colorScheme.error),
+                                        color: Theme.of(
+                                          context,
+                                        ).colorScheme.error,
+                                      ),
                                     )
                                   : null,
                               focusedBorder: isError
                                   ? OutlineInputBorder(
                                       borderSide: BorderSide(
-                                          color: Theme.of(context).colorScheme.error,
-                                          width: 2.0),
+                                        color: Theme.of(
+                                          context,
+                                        ).colorScheme.error,
+                                        width: 2.0,
+                                      ),
                                     )
                                   : null,
                               prefixIcon: IconButton(
@@ -342,7 +385,7 @@ class MyHomePage extends HookConsumerWidget {
                               ),
                               suffixIcon: IconButton(
                                 icon: const Icon(Icons.refresh),
-                                onPressed: calc,
+                                onPressed: () => generate(),
                               ),
                             ),
                             style: TextStyle(
@@ -384,20 +427,19 @@ class MyHomePage extends HookConsumerWidget {
                                   fontSize: Theme.of(
                                     context,
                                   ).textTheme.bodyMedium?.fontSize,
-                                  backgroundColor: password.value.contains(c)
+                                  backgroundColor:
+                                      password.value.contains(c)
                                       ? Theme.of(
                                           context,
                                         ).colorScheme.errorContainer
-                                      : charset.value.contains(c)
-                                          ? null
-                                          : Theme.of(
-                                              context,
-                                            ).colorScheme.secondaryContainer,
-                                  color: charset.value.contains(c)
+                                      : ref.watch(charsetProvider).contains(c)
                                       ? null
                                       : Theme.of(
                                           context,
-                                        ).colorScheme.secondary,
+                                        ).colorScheme.secondaryContainer,
+                                  color: ref.watch(charsetProvider).contains(c)
+                                      ? null
+                                      : Theme.of(context).colorScheme.secondary,
                                 ),
                               ),
                             )
@@ -427,14 +469,22 @@ class MyHomePage extends HookConsumerWidget {
                             child: Padding(
                               padding: const EdgeInsets.only(top: 16.0),
                               child: Slider(
-                                value: lengthIndex.value.toDouble(),
+                                value: ref
+                                    .watch(lengthIndexProvider)
+                                    .toDouble(),
                                 min: 0,
                                 max: (lengthList.length - 1).toDouble(),
                                 divisions: lengthList.length - 1,
                                 onChanged: (value) {
-                                  lengthIndex.value = value.toInt();
+                                  ref
+                                      .read(lengthIndexProvider.notifier)
+                                      .setLengthIndex(value);
+                                  prefs.setInt(
+                                    'length',
+                                    ref.watch(lengthProvider),
+                                  );
                                 },
-                                label: lengthList[lengthIndex.value].toString(),
+                                label: "${ref.watch(lengthProvider)}",
                               ),
                             ),
                           ),
@@ -448,18 +498,43 @@ class MyHomePage extends HookConsumerWidget {
                         children: [
                           ToggleButton(
                             label: Text(l10n.std(charSetStd.length)),
-                            isSelected: preset.value == Preset.std,
-                            onPressed: () => preset.value = Preset.std,
+                            isSelected: ref.watch(presetProvider) == Preset.std,
+                            onPressed: () {
+                              ref
+                                  .read(presetProvider.notifier)
+                                  .setPreset(Preset.std);
+                              prefs.setInt(
+                                'preset',
+                                Preset.values.indexOf(Preset.std),
+                              );
+                            },
                           ),
                           ToggleButton(
                             label: Text(l10n.ext(charSetExt.length)),
-                            isSelected: preset.value == Preset.ext,
-                            onPressed: () => preset.value = Preset.ext,
+                            isSelected: ref.watch(presetProvider) == Preset.ext,
+                            onPressed: () {
+                              ref
+                                  .read(presetProvider.notifier)
+                                  .setPreset(Preset.ext);
+                              prefs.setInt(
+                                'preset',
+                                Preset.values.indexOf(Preset.ext),
+                              );
+                            },
                           ),
                           ToggleButton(
                             label: Text(l10n.manual),
-                            isSelected: preset.value == Preset.manual,
-                            onPressed: () => preset.value = Preset.manual,
+                            isSelected:
+                                ref.watch(presetProvider) == Preset.manual,
+                            onPressed: () {
+                              ref
+                                  .read(presetProvider.notifier)
+                                  .setPreset(Preset.manual);
+                              prefs.setInt(
+                                'preset',
+                                Preset.values.indexOf(Preset.manual),
+                              );
+                            },
                           ),
                         ],
                       ),
@@ -471,30 +546,64 @@ class MyHomePage extends HookConsumerWidget {
                         children: [
                           ToggleButton(
                             label: Text('ABC'),
-                            isSelected: upperCase.value,
-                            onPressed: preset.value == Preset.manual
-                                ? () => upperCase.value = !upperCase.value
+                            isSelected: ref.watch(upperCaseProvider),
+                            onPressed:
+                                ref.watch(presetProvider) == Preset.manual
+                                ? () {
+                                    ref
+                                        .read(upperCaseProvider.notifier)
+                                        .toggle();
+                                    prefs.setBool(
+                                      'upperCase',
+                                      ref.watch(upperCaseProvider),
+                                    );
+                                  }
                                 : null,
                           ),
                           ToggleButton(
                             label: Text('abc'),
-                            isSelected: lowerCase.value,
-                            onPressed: preset.value == Preset.manual
-                                ? () => lowerCase.value = !lowerCase.value
+                            isSelected: ref.watch(lowerCaseProvider),
+                            onPressed:
+                                ref.watch(presetProvider) == Preset.manual
+                                ? () {
+                                    ref
+                                        .read(lowerCaseProvider.notifier)
+                                        .toggle();
+                                    prefs.setBool(
+                                      'lowerCase',
+                                      ref.watch(lowerCaseProvider),
+                                    );
+                                  }
                                 : null,
                           ),
                           ToggleButton(
                             label: Text('123'),
-                            isSelected: numerics.value,
-                            onPressed: preset.value == Preset.manual
-                                ? () => numerics.value = !numerics.value
+                            isSelected: ref.watch(numericsProvider),
+                            onPressed:
+                                ref.watch(presetProvider) == Preset.manual
+                                ? () {
+                                    ref
+                                        .read(numericsProvider.notifier)
+                                        .toggle();
+                                    prefs.setBool(
+                                      'numerics',
+                                      ref.watch(numericsProvider),
+                                    );
+                                  }
                                 : null,
                           ),
                           ToggleButton(
                             label: Text('@#\$'),
-                            isSelected: symbols.value,
-                            onPressed: preset.value == Preset.manual
-                                ? () => symbols.value = !symbols.value
+                            isSelected: ref.watch(symbolsProvider),
+                            onPressed:
+                                ref.watch(presetProvider) == Preset.manual
+                                ? () {
+                                    ref.read(symbolsProvider.notifier).toggle();
+                                    prefs.setBool(
+                                      'symbols',
+                                      ref.watch(symbolsProvider),
+                                    );
+                                  }
                                 : null,
                           ),
                         ],
@@ -505,9 +614,16 @@ class MyHomePage extends HookConsumerWidget {
                           Expanded(
                             child: TextField(
                               controller: excludedCharsController,
-                              enabled: preset.value == Preset.manual,
+                              enabled:
+                                  ref.watch(presetProvider) == Preset.manual,
                               onChanged: (value) {
-                                excludedChars.value = value;
+                                ref
+                                    .read(excludedCharsProvider.notifier)
+                                    .setExcludedChars(value);
+                                prefs.setString(
+                                  'excludedChars',
+                                  ref.watch(excludedCharsProvider),
+                                );
                               },
                               decoration: InputDecoration(
                                 border: const OutlineInputBorder(),
@@ -518,9 +634,18 @@ class MyHomePage extends HookConsumerWidget {
                           ),
                           const SizedBox(width: 8.0),
                           Switch(
-                            value: applyExcluded.value,
-                            onChanged: preset.value == Preset.manual
-                                ? (value) => applyExcluded.value = value
+                            value: ref.watch(applyExcludedProvider),
+                            onChanged:
+                                ref.watch(presetProvider) == Preset.manual
+                                ? (_) {
+                                    ref
+                                        .read(applyExcludedProvider.notifier)
+                                        .toggle();
+                                    prefs.setBool(
+                                      'applyExcluded',
+                                      ref.watch(applyExcludedProvider),
+                                    );
+                                  }
                                 : null,
                           ),
                         ],
@@ -530,8 +655,14 @@ class MyHomePage extends HookConsumerWidget {
                         children: [
                           Expanded(child: Text(l10n.allTypes)),
                           Switch(
-                            value: allTypes.value,
-                            onChanged: (value) => allTypes.value = value,
+                            value: ref.watch(allTypesProvider),
+                            onChanged: (_) {
+                              ref.read(allTypesProvider.notifier).toggle();
+                              prefs.setBool(
+                                'allTypes',
+                                ref.watch(allTypesProvider),
+                              );
+                            },
                           ),
                         ],
                       ),
@@ -540,8 +671,14 @@ class MyHomePage extends HookConsumerWidget {
                         children: [
                           Expanded(child: Text(l10n.uniqueChars)),
                           Switch(
-                            value: uniqueChars.value,
-                            onChanged: (value) => uniqueChars.value = value,
+                            value: ref.watch(uniqueCharsProvider),
+                            onChanged: (_) {
+                              ref.read(uniqueCharsProvider.notifier).toggle();
+                              prefs.setBool(
+                                'uniqueChars',
+                                ref.watch(uniqueCharsProvider),
+                              );
+                            },
                           ),
                         ],
                       ),
@@ -552,25 +689,26 @@ class MyHomePage extends HookConsumerWidget {
                         alignment: WrapAlignment.center,
                         crossAxisAlignment: WrapCrossAlignment.center,
                         children: [
-                           Text(
-                              '© 2025 Michinobu Maeda',
-                              style: Theme.of(context).textTheme.bodySmall,
-                            ),
+                          Text(
+                            '© 2025 Michinobu Maeda',
+                            style: Theme.of(context).textTheme.bodySmall,
+                          ),
                           TextButton(
                             onPressed: launchGithubUrl,
                             child: const Text('GitHub'),
                           ),
-                          packageInfo.when(
-                            data: (info) => Text(
-                              'v${info.version}+${info.buildNumber}',
-                              style: Theme.of(context).textTheme.bodySmall,
-                            ),
-                            loading: () => const Text(''),
-                            error: (e, s) => const Text(''),
-                          ),
+                          ref
+                              .watch(packageInfoProvider)
+                              .when(
+                                data: (info) => Text(
+                                  'v${info.version}+${info.buildNumber}',
+                                  style: Theme.of(context).textTheme.bodySmall,
+                                ),
+                                loading: () => const Text(''),
+                                error: (e, s) => const Text(''),
+                              ),
                         ],
                       ),
-                      const SizedBox(height: 16),
                     ],
                   ),
                 ),
