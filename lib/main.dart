@@ -13,67 +13,10 @@ import 'honkipass.dart';
 
 const contentWidth = 640.0;
 const contentPadding = 16.0;
+final Uri githubUrl = Uri.parse('https://github.com/MichinobuMaeda/honkipass6');
 
 void main() {
   runApp(ProviderScope(child: MyApp()));
-}
-
-Future<void> initPreferences(WidgetRef ref) async {
-  if (!ref.watch(preferencesInitializedProvider)) {
-    final prefs = ref.watch(prefsProvider);
-    debugPrint('start load preferences');
-    ref
-        .read(lengthIndexProvider.notifier)
-        .setLengthIndex(
-          lengthList.indexOf(await prefs.getInt('length') ?? defaultLength),
-        );
-    ref
-        .read(presetProvider.notifier)
-        .setPreset(Preset.values[await prefs.getInt('preset') ?? 0]);
-    ref
-        .read(upperCaseProvider.notifier)
-        .setUpperCase(await prefs.getBool('upperCase') ?? defaultUpperCase);
-    ref
-        .read(lowerCaseProvider.notifier)
-        .setLowerCase(await prefs.getBool('lowerCase') ?? defaultLowerCase);
-    ref
-        .read(numericsProvider.notifier)
-        .setNumerics(await prefs.getBool('numerics') ?? defaultNumerics);
-    ref
-        .read(symbolsProvider.notifier)
-        .setSymbols(await prefs.getBool('symbols') ?? defaultSymbols);
-    ref
-        .read(allTypesProvider.notifier)
-        .setAllTypes(await prefs.getBool('allTypes') ?? defaultAllTypes);
-    ref
-        .read(uniqueCharsProvider.notifier)
-        .setUniqueChars(
-          await prefs.getBool('uniqueChars') ?? defaultUniqueChars,
-        );
-    ref
-        .read(applyExcludedProvider.notifier)
-        .setApplyExcluded(
-          await prefs.getBool('applyExcluded') ?? defaultApplyExcluded,
-        );
-    ref
-        .read(excludedCharsProvider.notifier)
-        .setExcludedChars(
-          await prefs.getString('excludedChars') ?? defaultExcludedChars,
-        );
-    ref
-        .read(themeModeProvider.notifier)
-        .setThemeMode(
-          ThemeMode.values[await prefs.getInt('themeMode') ??
-              ThemeMode.values.indexOf(defaultThemeMode)],
-        );
-    ref
-        .read(localeProvider.notifier)
-        .setLocale(
-          Locale(await prefs.getString('locale') ?? defaultLocaleName),
-        );
-    ref.read(preferencesInitializedProvider.notifier).touch();
-    debugPrint('end   load preferences');
-  }
 }
 
 class MyApp extends ConsumerWidget {
@@ -156,6 +99,8 @@ class MyHomePage extends HookConsumerWidget {
     final passwordController = useTextEditingController(text: '');
     final password = useState<String>('');
 
+    final prefs = ref.watch(prefsProvider);
+
     void generate() {
       final newPassword = generatePassword(
         ref.watch(honkipassParamProvider),
@@ -179,45 +124,6 @@ class MyHomePage extends HookConsumerWidget {
       text: ref.watch(excludedCharsProvider),
     );
 
-    final isChanged =
-        ref.watch(lengthProvider) != defaultLength ||
-        ref.watch(presetProvider) != defaultPreset ||
-        ref.watch(lowerCaseProvider) != defaultLowerCase ||
-        ref.watch(upperCaseProvider) != defaultUpperCase ||
-        ref.watch(numericsProvider) != defaultNumerics ||
-        ref.watch(symbolsProvider) != defaultSymbols ||
-        ref.watch(allTypesProvider) != defaultAllTypes ||
-        ref.watch(uniqueCharsProvider) != defaultUniqueChars ||
-        ref.watch(applyExcludedProvider) != defaultApplyExcluded ||
-        ref.watch(excludedCharsProvider) != defaultExcludedChars;
-
-    final prefs = ref.watch(prefsProvider);
-
-    void onReset() {
-      ref.read(lengthIndexProvider.notifier).reset();
-      ref.read(presetProvider.notifier).reset();
-      ref.read(lowerCaseProvider.notifier).reset();
-      ref.read(upperCaseProvider.notifier).reset();
-      ref.read(numericsProvider.notifier).reset();
-      ref.read(symbolsProvider.notifier).reset();
-      ref.read(allTypesProvider.notifier).reset();
-      ref.read(uniqueCharsProvider.notifier).reset();
-      ref.read(applyExcludedProvider.notifier).reset();
-      ref.read(excludedCharsProvider.notifier).reset();
-
-      final prefs = ref.watch(prefsProvider);
-      prefs.remove('length');
-      prefs.remove('preset');
-      prefs.remove('upperCase');
-      prefs.remove('lowerCase');
-      prefs.remove('numerics');
-      prefs.remove('symbols');
-      prefs.remove('allTypes');
-      prefs.remove('uniqueChars');
-      prefs.remove('applyExcluded');
-      prefs.remove('excludedChars');
-    }
-
     void copyPassword() {
       Clipboard.setData(ClipboardData(text: password.value))
           .then((_) {
@@ -227,10 +133,6 @@ class MyHomePage extends HookConsumerWidget {
             message.value = l10n.failedToCopy;
           });
     }
-
-    final Uri githubUrl = Uri.parse(
-      'https://github.com/MichinobuMaeda/honkipass6',
-    );
 
     Future<void> launchGithubUrl() async {
       if (!await launchUrl(githubUrl)) {
@@ -427,8 +329,7 @@ class MyHomePage extends HookConsumerWidget {
                                   fontSize: Theme.of(
                                     context,
                                   ).textTheme.bodyMedium?.fontSize,
-                                  backgroundColor:
-                                      password.value.contains(c)
+                                  backgroundColor: password.value.contains(c)
                                       ? Theme.of(
                                           context,
                                         ).colorScheme.errorContainer
@@ -452,11 +353,15 @@ class MyHomePage extends HookConsumerWidget {
                           if (screenWidth < breakpointMobile)
                             IconButton(
                               icon: const Icon(Icons.settings_backup_restore),
-                              onPressed: isChanged ? onReset : null,
+                              onPressed: ref.watch(isParamsChangedProvider)
+                                  ? () => onParamsReset(ref)
+                                  : null,
                             )
                           else
                             FilledButton.tonal(
-                              onPressed: isChanged ? onReset : null,
+                              onPressed: ref.watch(isParamsChangedProvider)
+                                  ? () => onParamsReset(ref)
+                                  : null,
                               child: Row(
                                 children: [
                                   const Icon(Icons.settings_backup_restore),
