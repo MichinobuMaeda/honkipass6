@@ -233,7 +233,7 @@ class MyHomePage extends HookConsumerWidget {
               SizedBox(width: 4.0),
             ],
             bottom: PreferredSize(
-              preferredSize: const Size.fromHeight(94.0),
+              preferredSize: const Size.fromHeight(84.0),
               child: Container(
                 color: Theme.of(context).colorScheme.surfaceContainerLowest,
                 child: Center(
@@ -242,7 +242,7 @@ class MyHomePage extends HookConsumerWidget {
                     child: Padding(
                       padding: const EdgeInsets.symmetric(
                         horizontal: contentPadding,
-                        vertical: 12.0,
+                        vertical: 8.0,
                       ),
                       child: ValueListenableBuilder<String>(
                         valueListenable: message,
@@ -312,8 +312,10 @@ class MyHomePage extends HookConsumerWidget {
                 child: Padding(
                   padding: const EdgeInsets.symmetric(
                     horizontal: contentPadding,
+                    vertical: 8.0,
                   ),
                   child: Column(
+                    spacing: 16.0,
                     children: [
                       Wrap(
                         alignment: WrapAlignment.start,
@@ -346,12 +348,12 @@ class MyHomePage extends HookConsumerWidget {
                             )
                             .toList(),
                       ),
-                      const SizedBox(height: 16.0),
                       Row(
+                        spacing: 16.0,
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           if (screenWidth < breakpointMobile)
-                            IconButton(
+                            IconButton.filledTonal(
                               icon: const Icon(Icons.settings_backup_restore),
                               onPressed: ref.watch(isParamsChangedProvider)
                                   ? () => onParamsReset(ref)
@@ -363,16 +365,16 @@ class MyHomePage extends HookConsumerWidget {
                                   ? () => onParamsReset(ref)
                                   : null,
                               child: Row(
+                                spacing: 8.0,
                                 children: [
                                   const Icon(Icons.settings_backup_restore),
-                                  const SizedBox(width: 8.0),
                                   Text(l10n.reset),
                                 ],
                               ),
                             ),
                           Expanded(
                             child: Padding(
-                              padding: const EdgeInsets.only(top: 16.0),
+                              padding: const EdgeInsets.only(top: 32.0),
                               child: Slider(
                                 value: ref
                                     .watch(lengthIndexProvider)
@@ -395,7 +397,6 @@ class MyHomePage extends HookConsumerWidget {
                           ),
                         ],
                       ),
-                      const SizedBox(height: 16.0),
                       Wrap(
                         direction: Axis.horizontal,
                         alignment: WrapAlignment.center,
@@ -443,7 +444,6 @@ class MyHomePage extends HookConsumerWidget {
                           ),
                         ],
                       ),
-                      const SizedBox(height: 16.0),
                       Wrap(
                         direction: Axis.horizontal,
                         alignment: WrapAlignment.center,
@@ -513,8 +513,8 @@ class MyHomePage extends HookConsumerWidget {
                           ),
                         ],
                       ),
-                      const SizedBox(height: 16.0),
                       Row(
+                        spacing: 16.0,
                         children: [
                           Expanded(
                             child: TextField(
@@ -537,7 +537,6 @@ class MyHomePage extends HookConsumerWidget {
                               style: TextStyle(fontFamily: 'Monospace'),
                             ),
                           ),
-                          const SizedBox(width: 8.0),
                           Switch(
                             value: ref.watch(applyExcludedProvider),
                             onChanged:
@@ -555,7 +554,6 @@ class MyHomePage extends HookConsumerWidget {
                           ),
                         ],
                       ),
-                      const SizedBox(height: 16.0),
                       Row(
                         children: [
                           Expanded(child: Text(l10n.allTypes)),
@@ -571,7 +569,6 @@ class MyHomePage extends HookConsumerWidget {
                           ),
                         ],
                       ),
-                      const SizedBox(height: 16.0),
                       Row(
                         children: [
                           Expanded(child: Text(l10n.uniqueChars)),
@@ -587,7 +584,6 @@ class MyHomePage extends HookConsumerWidget {
                           ),
                         ],
                       ),
-                      const SizedBox(height: 24),
                       Wrap(
                         spacing: 16.0,
                         runSpacing: 4.0,
