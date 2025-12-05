@@ -2,6 +2,9 @@ import 'package:flutter/material.dart';
 
 const useMaterial3 = true;
 const seedColor = Colors.teal;
+const breakpointMobile = 480.0;
+const contentWidth = 640.0;
+const contentPadding = 16.0;
 
 final defaultButtonStyle = ButtonStyle(
   padding: WidgetStateProperty.all(
@@ -22,7 +25,7 @@ final themeData = ThemeData(
     year2023: false,
     trackHeight: 24.0,
     showValueIndicator: ShowValueIndicator.alwaysVisible,
-  )
+  ),
 );
 
 final darkThemeData = ThemeData(

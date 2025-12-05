@@ -5,7 +5,7 @@ const maxTryCount = 1000;
 enum Preset { std, ext, manual }
 
 const lengthList = [6, 8, 10, 12, 16, 20, 24, 30, 36, 48, 64, 128];
-const defaultLength = 8;
+const defaultLength = 10;
 const defaultPreset = Preset.std;
 const defaultLowerCase = true;
 const defaultUpperCase = true;
@@ -138,3 +138,6 @@ String? generatePassword(HonkipassParam param, String chars) {
   }
   return null;
 }
+
+String initialPassword =
+    generatePassword(HonkipassParam(), generateChars(HonkipassParam())) ?? '';

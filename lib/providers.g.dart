@@ -649,6 +649,167 @@ abstract class _$ExcludedCharsNotifier extends $Notifier<String> {
   }
 }
 
+@ProviderFor(PasswordNotifier)
+const passwordProvider = PasswordNotifierProvider._();
+
+final class PasswordNotifierProvider
+    extends $NotifierProvider<PasswordNotifier, String> {
+  const PasswordNotifierProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'passwordProvider',
+        isAutoDispose: true,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$passwordNotifierHash();
+
+  @$internal
+  @override
+  PasswordNotifier create() => PasswordNotifier();
+
+  /// {@macro riverpod.override_with_value}
+  Override overrideWithValue(String value) {
+    return $ProviderOverride(
+      origin: this,
+      providerOverride: $SyncValueProvider<String>(value),
+    );
+  }
+}
+
+String _$passwordNotifierHash() => r'df3f5190f95b84b665013d1074234b761b112a84';
+
+abstract class _$PasswordNotifier extends $Notifier<String> {
+  String build();
+  @$mustCallSuper
+  @override
+  void runBuild() {
+    final created = build();
+    final ref = this.ref as $Ref<String, String>;
+    final element =
+        ref.element
+            as $ClassProviderElement<
+              AnyNotifier<String, String>,
+              String,
+              Object?,
+              Object?
+            >;
+    element.handleValue(ref, created);
+  }
+}
+
+@ProviderFor(PasswordGenerateRequestNotifier)
+const passwordGenerateRequestProvider =
+    PasswordGenerateRequestNotifierProvider._();
+
+final class PasswordGenerateRequestNotifierProvider
+    extends $NotifierProvider<PasswordGenerateRequestNotifier, bool> {
+  const PasswordGenerateRequestNotifierProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'passwordGenerateRequestProvider',
+        isAutoDispose: true,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$passwordGenerateRequestNotifierHash();
+
+  @$internal
+  @override
+  PasswordGenerateRequestNotifier create() => PasswordGenerateRequestNotifier();
+
+  /// {@macro riverpod.override_with_value}
+  Override overrideWithValue(bool value) {
+    return $ProviderOverride(
+      origin: this,
+      providerOverride: $SyncValueProvider<bool>(value),
+    );
+  }
+}
+
+String _$passwordGenerateRequestNotifierHash() =>
+    r'f90a66fbfbdfe5c30ad9eff4af0db420620cb24d';
+
+abstract class _$PasswordGenerateRequestNotifier extends $Notifier<bool> {
+  bool build();
+  @$mustCallSuper
+  @override
+  void runBuild() {
+    final created = build();
+    final ref = this.ref as $Ref<bool, bool>;
+    final element =
+        ref.element
+            as $ClassProviderElement<
+              AnyNotifier<bool, bool>,
+              bool,
+              Object?,
+              Object?
+            >;
+    element.handleValue(ref, created);
+  }
+}
+
+@ProviderFor(MessageNotifier)
+const messageProvider = MessageNotifierProvider._();
+
+final class MessageNotifierProvider
+    extends $NotifierProvider<MessageNotifier, Message> {
+  const MessageNotifierProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'messageProvider',
+        isAutoDispose: true,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$messageNotifierHash();
+
+  @$internal
+  @override
+  MessageNotifier create() => MessageNotifier();
+
+  /// {@macro riverpod.override_with_value}
+  Override overrideWithValue(Message value) {
+    return $ProviderOverride(
+      origin: this,
+      providerOverride: $SyncValueProvider<Message>(value),
+    );
+  }
+}
+
+String _$messageNotifierHash() => r'771fc6ede4390c655ea647f0599f3432f04b5c09';
+
+abstract class _$MessageNotifier extends $Notifier<Message> {
+  Message build();
+  @$mustCallSuper
+  @override
+  void runBuild() {
+    final created = build();
+    final ref = this.ref as $Ref<Message, Message>;
+    final element =
+        ref.element
+            as $ClassProviderElement<
+              AnyNotifier<Message, Message>,
+              Message,
+              Object?,
+              Object?
+            >;
+    element.handleValue(ref, created);
+  }
+}
+
 @ProviderFor(PreferencesInitializedNotifier)
 const preferencesInitializedProvider =
     PreferencesInitializedNotifierProvider._();

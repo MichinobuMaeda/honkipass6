@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:honkipass6/l10n/app_localizations.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -26,6 +27,35 @@ class ThemeModeNotifier extends _$ThemeModeNotifier {
   setThemeMode(mode) => state = mode;
 }
 
+class ThemeMenuItem {
+  const ThemeMenuItem({
+    required this.mode,
+    required this.label,
+    required this.icon,
+  });
+  final ThemeMode mode;
+  final String label;
+  final IconData icon;
+}
+
+List<ThemeMenuItem> themeList(AppLocalizations l10n) => [
+  ThemeMenuItem(
+    mode: ThemeMode.light,
+    label: l10n.lightMode,
+    icon: Icons.light_mode,
+  ),
+  ThemeMenuItem(
+    mode: ThemeMode.dark,
+    label: l10n.darkMode,
+    icon: Icons.dark_mode,
+  ),
+  ThemeMenuItem(
+    mode: ThemeMode.system,
+    label: l10n.auto,
+    icon: Icons.brightness_auto,
+  ),
+];
+
 @riverpod
 class LocaleNotifier extends _$LocaleNotifier {
   @override
@@ -33,6 +63,22 @@ class LocaleNotifier extends _$LocaleNotifier {
 
   setLocale(locale) => state = locale;
 }
+
+class LanguageMenuItem {
+  const LanguageMenuItem({
+    required this.locale,
+    required this.label,
+    required this.shortName,
+  });
+  final Locale locale;
+  final String label;
+  final String shortName;
+}
+
+const languageList = [
+  LanguageMenuItem(locale: Locale('ja'), label: '日本語', shortName: '日'),
+  LanguageMenuItem(locale: Locale('en'), label: 'English', shortName: 'En'),
+];
 
 @riverpod
 class LengthIndexNotifier extends _$LengthIndexNotifier {
@@ -135,6 +181,10 @@ class ExcludedCharsNotifier extends _$ExcludedCharsNotifier {
   reset() => state = defaultExcludedChars;
 }
 
+final excludesTextEditingControllerProvider = Provider<TextEditingController>(
+  (ref) => TextEditingController(text: defaultExcludedChars),
+);
+
 final honkipassParamProvider = Provider<HonkipassParam>(
   (ref) => HonkipassParam(
     length: ref.watch(lengthProvider),
@@ -153,6 +203,37 @@ final honkipassParamProvider = Provider<HonkipassParam>(
 final charsetProvider = Provider<String>(
   (ref) => generateChars(ref.watch(honkipassParamProvider)),
 );
+
+@riverpod
+class PasswordNotifier extends _$PasswordNotifier {
+  @override
+  String build() => initialPassword;
+
+  setPassword(password) => state = password;
+}
+
+final passwordTextEditingControllerProvider = Provider<TextEditingController>(
+  (ref) => TextEditingController(text: initialPassword),
+);
+
+@riverpod
+class PasswordGenerateRequestNotifier
+    extends _$PasswordGenerateRequestNotifier {
+  @override
+  bool build() => false;
+
+  request() => state = !state;
+}
+
+enum Message { wait, generated, retry, copied, failedToCopy }
+
+@riverpod
+class MessageNotifier extends _$MessageNotifier {
+  @override
+  Message build() => Message.wait;
+
+  setMessage(message) => state = message;
+}
 
 @riverpod
 class PreferencesInitializedNotifier extends _$PreferencesInitializedNotifier {
@@ -176,64 +257,6 @@ final isParamsChangedProvider = Provider<bool>(
       ref.watch(excludedCharsProvider) != defaultExcludedChars,
 );
 
-Future<void> initPreferences(WidgetRef ref) async {
-  if (!ref.watch(preferencesInitializedProvider)) {
-    final prefs = ref.watch(prefsProvider);
-    debugPrint('start load preferences');
-    ref
-        .read(lengthIndexProvider.notifier)
-        .setLengthIndex(
-          lengthList.indexOf(await prefs.getInt('length') ?? defaultLength),
-        );
-    ref
-        .read(presetProvider.notifier)
-        .setPreset(Preset.values[await prefs.getInt('preset') ?? 0]);
-    ref
-        .read(upperCaseProvider.notifier)
-        .setUpperCase(await prefs.getBool('upperCase') ?? defaultUpperCase);
-    ref
-        .read(lowerCaseProvider.notifier)
-        .setLowerCase(await prefs.getBool('lowerCase') ?? defaultLowerCase);
-    ref
-        .read(numericsProvider.notifier)
-        .setNumerics(await prefs.getBool('numerics') ?? defaultNumerics);
-    ref
-        .read(symbolsProvider.notifier)
-        .setSymbols(await prefs.getBool('symbols') ?? defaultSymbols);
-    ref
-        .read(allTypesProvider.notifier)
-        .setAllTypes(await prefs.getBool('allTypes') ?? defaultAllTypes);
-    ref
-        .read(uniqueCharsProvider.notifier)
-        .setUniqueChars(
-          await prefs.getBool('uniqueChars') ?? defaultUniqueChars,
-        );
-    ref
-        .read(applyExcludedProvider.notifier)
-        .setApplyExcluded(
-          await prefs.getBool('applyExcluded') ?? defaultApplyExcluded,
-        );
-    ref
-        .read(excludedCharsProvider.notifier)
-        .setExcludedChars(
-          await prefs.getString('excludedChars') ?? defaultExcludedChars,
-        );
-    ref
-        .read(themeModeProvider.notifier)
-        .setThemeMode(
-          ThemeMode.values[await prefs.getInt('themeMode') ??
-              ThemeMode.values.indexOf(defaultThemeMode)],
-        );
-    ref
-        .read(localeProvider.notifier)
-        .setLocale(
-          Locale(await prefs.getString('locale') ?? defaultLocaleName),
-        );
-    ref.read(preferencesInitializedProvider.notifier).touch();
-    debugPrint('end   load preferences');
-  }
-}
-
 void onParamsReset(WidgetRef ref) {
   ref.read(lengthIndexProvider.notifier).reset();
   ref.read(presetProvider.notifier).reset();
@@ -245,16 +268,34 @@ void onParamsReset(WidgetRef ref) {
   ref.read(uniqueCharsProvider.notifier).reset();
   ref.read(applyExcludedProvider.notifier).reset();
   ref.read(excludedCharsProvider.notifier).reset();
+  ref.read(excludesTextEditingControllerProvider).text = defaultExcludedChars;
+}
 
-  final prefs = ref.watch(prefsProvider);
-  prefs.remove('length');
-  prefs.remove('preset');
-  prefs.remove('upperCase');
-  prefs.remove('lowerCase');
-  prefs.remove('numerics');
-  prefs.remove('symbols');
-  prefs.remove('allTypes');
-  prefs.remove('uniqueChars');
-  prefs.remove('applyExcluded');
-  prefs.remove('excludedChars');
+final class UserActionObserver extends ProviderObserver {
+  @override
+  void didUpdateProvider(
+    ProviderObserverContext context,
+    Object? previousValue,
+    Object? newValue,
+  ) {
+    final ref = context.container;
+
+    if (newValue is HonkipassParam ||
+        context.provider == passwordGenerateRequestProvider) {
+      debugPrint("params changed");
+      final newPassword = generatePassword(
+        ref.read(honkipassParamProvider),
+        ref.read(charsetProvider),
+      );
+
+      if (newPassword == null) {
+        ref.read(messageProvider.notifier).setMessage(Message.retry);
+      } else {
+        debugPrint("new password $newPassword");
+        ref.read(passwordProvider.notifier).setPassword(newPassword);
+        ref.read(passwordTextEditingControllerProvider).text = newPassword;
+        ref.read(messageProvider.notifier).setMessage(Message.generated);
+      }
+    }
+  }
 }
