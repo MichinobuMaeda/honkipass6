@@ -16,31 +16,42 @@ class ToggleButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return isSelected
-        ? (label == null
-              ? IconButton.filled(onPressed: onPressed, icon: icon ?? Text(''))
-              : (icon == null
-                    ? FilledButton(
-                        onPressed: onPressed,
-                        child: Row(spacing: 8.0, mainAxisSize: MainAxisSize.min,children: [label!]),
-                      )
-                    : FilledButton(
-                        onPressed: onPressed,
-                        child: Row(spacing: 8.0, mainAxisSize: MainAxisSize.min,children: [icon!, label!]),
-                      )))
-        : (label == null
-              ? IconButton.filledTonal(
-                  onPressed: onPressed,
-                  icon: icon ?? Text(''),
-                )
-              : (icon == null
-                    ? FilledButton.tonal(
-                        onPressed: onPressed,
-                        child: Row(spacing: 8.0,mainAxisSize: MainAxisSize.min, children: [label!]),
-                      )
-                    : FilledButton.tonal(
-                        onPressed: onPressed,
-                        child: Row(spacing: 8.0, mainAxisSize: MainAxisSize.min,children: [icon!, label!]),
-                      )));
+    final selectedStyle = ButtonStyle(
+      shape: WidgetStateProperty.all<RoundedRectangleBorder>(
+        RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(12.0),
+        ),
+      ),
+    );
+
+    final List<Widget> children = [];
+    if (icon != null) {
+      children.add(icon!);
+    }
+    if (label != null) {
+      if (icon != null) {
+        children.add(const SizedBox(width: 8.0));
+      }
+      children.add(label!);
+    }
+
+    if (isSelected) {
+      return FilledButton(
+        onPressed: onPressed,
+        style: selectedStyle,
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: children,
+        ),
+      );
+    } else {
+      return FilledButton.tonal(
+        onPressed: onPressed,
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: children,
+        ),
+      );
+    }
   }
 }
